@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class LightSound: MonoBehaviour
+public class SceneSoundStart : MonoBehaviour
 {
     public AudioSource audioSource;  // la source du son
     public AudioClip startClip;      // le son à jouer au démarrage

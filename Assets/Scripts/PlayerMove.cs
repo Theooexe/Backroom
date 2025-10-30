@@ -7,6 +7,7 @@ public class PlayerMove : MonoBehaviour
 {
     [Header("Player Settings")]
     public Camera playerCamera;
+    public Animator animator;
     public float walkSpeed = 2f;
     public float runSpeed = 4f;
     public float jumpPower = 7f;
@@ -87,6 +88,19 @@ public class PlayerMove : MonoBehaviour
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
         transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * lookSpeed);
+
+        // --- Animation ---
+        float horizontalSpeed = new Vector3(moveDirection.x, 0, moveDirection.z).magnitude;
+
+        // vitesse utilisée pour animation (marche / course)
+        animator.SetFloat("Speed", horizontalSpeed);
+
+        // saut
+        animator.SetBool("IsJumping", !characterController.isGrounded);
+
+        // crouch
+        animator.SetBool("IsCrouching", isCrouching);
+
     }
 
     void PlayFootstepSound(float speed, float inputX, float inputZ)

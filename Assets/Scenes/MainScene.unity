@@ -3038,6 +3038,27 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 639006250107334805, guid: 75d2407752895f4418864182ff7eb836, type: 3}
   m_PrefabInstance: {fileID: 587112347}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &604512183 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7529146078069257455, guid: 7cc6c517d6ee51b4e91649ea7d2ab3a5, type: 3}
+  m_PrefabInstance: {fileID: 1879565680}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &604512188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 604512183}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 182a90dd936676c4f965adf5a849bb7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Door
+  openSound: {fileID: 8300000, guid: e0c5ab5c250885a4c89ec38ea6648dff, type: 3}
+  closeSound: {fileID: 8300000, guid: 3c1c01df66c1c1445972a61ae04a46b1, type: 3}
+  openAngle: 90
+  smooth: 2
 --- !u!1001 &631029243
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10166,7 +10187,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1318108873563684696, guid: 7cc6c517d6ee51b4e91649ea7d2ab3a5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 638603947}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7529146078069257455, guid: 7cc6c517d6ee51b4e91649ea7d2ab3a5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 604512188}
   m_SourcePrefab: {fileID: 100100000, guid: 7cc6c517d6ee51b4e91649ea7d2ab3a5, type: 3}
 --- !u!4 &1879565681 stripped
 Transform:

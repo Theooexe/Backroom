@@ -4541,10 +4541,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1.2
-  m_Height: 4
+  m_Radius: 0.7
+  m_Height: 3
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.44, z: 0}
 --- !u!23 &884390865
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4610,7 +4610,7 @@ Transform:
   m_GameObject: {fileID: 884390863}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.249, z: 0}
+  m_LocalPosition: {x: -30.92, y: 1.249, z: -0.85}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4653,11 +4653,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 884390863}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85e43ddcfed8f244cbfadca14ea824c7, type: 3}
+  m_Script: {fileID: 11500000, guid: 820fad0e19b1d5c4e985900d50b0f158, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Monster
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterMovement
   moveSpeed: 2
-  target: {fileID: 0}
+  changeTargetInterval: 3
+  moveRange: 10
 --- !u!1001 &884451547
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,60 +1,60 @@
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.AI;
 
 public class MonsterPatrol : MonoBehaviour
 {
-    public Transform[] waypoints;  // Points de patrouille � assigner dans l'inspecteur
-    public float moveSpeed = 2f;
-    public float waitTime = 2f;
+    public Transform[] waypoints;     // Points à suivre
+    public float waitTime = 2f;       // Temps d’attente entre chaque point
 
     private int currentIndex = 0;
-    private float waitTimer = 0f;
-    private bool isWaiting = false;
+    private bool waiting = false;
+    private NavMeshAgent agent;
     private Animator animator;
-    private Rigidbody rb;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        agent = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<Animator>();
+
+        if (waypoints.Length > 0)
+            MoveToNextPoint();
     }
 
-    void FixedUpdate()
+    void Update()
+    {
+        if (agent.pathPending)
+            return;
+
+        // Animation
+        if (animator != null)
+        {
+            // Si on attend sur un point → idle
+            bool isMoving = !waiting && agent.velocity.magnitude > 0.1f;
+            animator.SetBool("isMoving", isMoving);
+        }
+
+        // Si arrivé au point et pas déjà en attente
+        if (!waiting && agent.remainingDistance <= agent.stoppingDistance)
+        {
+            StartCoroutine(WaitAndMove());
+        }
+    }
+
+
+    System.Collections.IEnumerator WaitAndMove()
+    {
+        waiting = true;
+        animator.SetBool("isMoving", false);
+        yield return new WaitForSeconds(waitTime);
+        MoveToNextPoint();
+        waiting = false;
+    }
+
+    void MoveToNextPoint()
     {
         if (waypoints.Length == 0) return;
 
-        if (isWaiting)
-        {
-            waitTimer += Time.fixedDeltaTime;
-            if (waitTimer >= waitTime)
-            {
-                isWaiting = false;
-                currentIndex = (currentIndex + 1) % waypoints.Length;
-            }
-            else
-            {
-                if (animator != null)
-                    animator.SetBool("isMoving", false);
-                return;
-            }
-        }
-
-        Transform target = waypoints[currentIndex];
-        Vector3 direction = (target.position - transform.position);
-        float distance = direction.magnitude;
-
-        if (distance < 0.5f)
-        {
-            isWaiting = true;
-            waitTimer = 0f;
-        }
-        else
-        {
-            Vector3 moveDir = direction.normalized;
-            rb.MovePosition(transform.position + moveDir * moveSpeed * Time.fixedDeltaTime);
-            transform.forward = Vector3.Lerp(transform.forward, moveDir, Time.deltaTime * 5f);
-
-            if (animator != null)
-                animator.SetBool("isMoving", true);
-        }
+        agent.SetDestination(waypoints[currentIndex].position);
+        currentIndex = (currentIndex + 1) % waypoints.Length; // boucle
     }
 }

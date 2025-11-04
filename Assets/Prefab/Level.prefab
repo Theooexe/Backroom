@@ -5742,6 +5742,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 182a90dd936676c4f965adf5a849bb7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Door
+  doorMesh: {fileID: 0}
   openSound: {fileID: 8300000, guid: e0c5ab5c250885a4c89ec38ea6648dff, type: 3}
   closeSound: {fileID: 8300000, guid: 3c1c01df66c1c1445972a61ae04a46b1, type: 3}
   openAngle: 90
@@ -8716,7 +8717,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: SpawnRoom
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3683865915315312224, guid: bfd2e1e07c075dc43a5db8c11cf2be54, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

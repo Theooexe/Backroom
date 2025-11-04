@@ -471,7 +471,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 581034783}
-  - component: {fileID: 581034782}
   - component: {fileID: 581034784}
   m_Layer: 0
   m_Name: AudioBackroom
@@ -480,20 +479,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &581034782
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 581034781}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8f16d4165461e243bfb5b7592d9a19f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneSoundStart
-  audioSource: {fileID: 581034784}
-  startClip: {fileID: 8300000, guid: 5ca5ab7bafafb104a81b4e4385293dd0, type: 3}
 --- !u!4 &581034783
 Transform:
   m_ObjectHideFlags: 0
@@ -520,7 +505,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 5ca5ab7bafafb104a81b4e4385293dd0, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.05
   m_Pitch: 1

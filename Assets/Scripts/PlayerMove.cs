@@ -18,15 +18,14 @@ public class PlayerMove : MonoBehaviour
     public float crouchSpeed = 1f;
 
     [Header("Footsteps")]
-    public AudioClip[] walkClips;  // plusieurs sons de marche
-    public AudioClip[] runClips;   // plusieurs sons de course
-    public AudioSource audioSource;
-    public float stepInterval = 0.5f;
+    public AudioClip stepClip;       // Même son pour marche et course
+    public AudioSource audioSource;  // AudioSource pour les pas
+    public float walkStepInterval = 0.5f;
+    public float runStepInterval = 0.3f;
 
     private Vector3 moveDirection = Vector3.zero;
-    private float rotationX = 0;
+    private float rotationX = 0f;
     private CharacterController characterController;
-    private bool canMove = true;
     private float stepTimer = 0f;
 
     void Start()
@@ -34,85 +33,75 @@ public class PlayerMove : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 1f; // 3D
+        }
     }
 
     void Update()
     {
-        if (!canMove) return;
-
-        // Lecture des inputs
-        float inputX = Input.GetAxis("Horizontal"); // A/D
-        float inputZ = Input.GetAxis("Vertical");   // W/S
+        // Inputs
+        float inputX = Input.GetAxis("Horizontal");
+        float inputZ = Input.GetAxis("Vertical");
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
-
-        // Crouch sur Ctrl
         bool isCrouching = Input.GetKey(KeyCode.LeftControl);
-        float currentSpeed;
-        if (isCrouching)
-        {
-            currentSpeed = crouchSpeed;
-            characterController.height = crouchHeight;
-        }
-        else
-        {
-            currentSpeed = isRunning ? runSpeed : walkSpeed;
-            characterController.height = defaultHeight;
-        }
+
+        // Vitesse
+        float currentSpeed = isCrouching ? crouchSpeed : (isRunning ? runSpeed : walkSpeed);
+        characterController.height = isCrouching ? crouchHeight : defaultHeight;
 
         // Mouvement horizontal
         Vector3 move = (transform.forward * inputZ + transform.right * inputX) * currentSpeed;
 
-        // Gestion du saut et gravité
+        // Gravité et saut
         if (characterController.isGrounded)
         {
             moveDirection.y = 0f;
             if (Input.GetButton("Jump") && !isCrouching)
                 moveDirection.y = jumpPower;
         }
-
         moveDirection.y -= gravity * Time.deltaTime;
 
-        // Combine horizontal et vertical
         moveDirection.x = move.x;
         moveDirection.z = move.z;
 
-        // Déplacement
         characterController.Move(moveDirection * Time.deltaTime);
 
-        // Jouer sons de pas
-        PlayFootstepSound(currentSpeed, inputX, inputZ);
+        // Sons de pas
+        HandleFootstepSounds(currentSpeed);
 
         // Rotation caméra
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
         transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * lookSpeed);
-
     }
 
-    void PlayFootstepSound(float speed, float inputX, float inputZ)
+    void HandleFootstepSounds(float speed)
     {
-        Vector3 horizontalMove = new Vector3(moveDirection.x, 0, moveDirection.z);
-        bool isMoving = characterController.isGrounded && horizontalMove.magnitude > 0.1f;
+        bool isMoving = characterController.isGrounded && (moveDirection.x != 0 || moveDirection.z != 0);
+        float interval = speed > walkSpeed ? runStepInterval : walkStepInterval;
 
         if (isMoving)
         {
             stepTimer += Time.deltaTime;
-            if (stepTimer >= stepInterval / (speed / walkSpeed)) // plus rapide si course
+            if (stepTimer >= interval)
             {
-                AudioClip[] clips = (speed > walkSpeed) ? runClips : walkClips;
-                if (clips.Length > 0 && audioSource != null)
+                if (stepClip != null)
                 {
-                    audioSource.clip = clips[Random.Range(0, clips.Length)];
-                    audioSource.pitch = Random.Range(0.9f, 1.1f); // variation de pitch
-                    audioSource.Play();
+                    audioSource.pitch = Random.Range(0.9f, 1.1f);
+                    audioSource.PlayOneShot(stepClip);
                 }
                 stepTimer = 0f;
             }
         }
         else
         {
-            stepTimer = stepInterval; // reset timer si arrêt
+            stepTimer = interval; // reset timer quand on s'arrête
         }
     }
 }

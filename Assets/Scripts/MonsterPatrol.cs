@@ -1,113 +1,128 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 
 public class MonsterPatrol : MonoBehaviour
 {
-    [Header("Patrouille")]
-    public Transform[] waypoints; 
-    public float waitTime = 2f;  
-
-    [Header("Vision")]
-    public Transform player;      
-    public float viewDistance = 10f;
-    [Range(0, 360)]
-    public float viewAngle = 120f;
-
-    private int currentIndex = 0;
-    private bool waiting = false;
-    private bool chasing = false;
-
+    // --- Références ---
+    public Transform player;         // Ton joueur
+    public Transform[] waypoints;    // Points de patrouille
     private NavMeshAgent agent;
     private Animator animator;
-    private Coroutine chaseCoroutine;
 
+    // --- Paramètres de déplacement ---
+    public float walkSpeed = 2f;
+    public float runSpeed = 6f;
+
+    // --- Paramètres de détection ---
+    public float viewDistance =6f;
+    public float viewAngle = 60f;
+    public float detectionRadius = 3f; // Détection si le joueur est très proche
+    public float attackRange = 2f;     // Distance à laquelle il attaque
+
+    // --- États internes ---
+    private int currentWaypoint = 0;
+    private bool isWaiting = false;
+    private bool isAttacking = false;
+    private bool playerDetected = false;
+
+    // --- Initialisation ---
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        animator = GetComponentInChildren<Animator>();
+        animator = GetComponent<Animator>();
 
-        if (waypoints.Length > 0)
-            MoveToNextPoint();
+        // TODO : initialiser le NavMeshAgent
+        // TODO : lancer la première destination de patrouille
     }
 
+    // --- Mise à jour à chaque frame ---
     void Update()
     {
-        if (agent.pathPending)
-            return;
+        // TODO : calculer la distance au joueur
 
-        // Détection joueur
-        if (!chasing && CanSeePlayer())
-        {
-            if (chaseCoroutine != null) StopCoroutine(chaseCoroutine);
-            chaseCoroutine = StartCoroutine(ChasePlayer());
-        }
+        // TODO : mettre à jour le paramètre Speed dans l'Animator
 
-        // Animation
-        if (animator != null)
-        {
-            bool isMoving = !waiting && agent.remainingDistance > agent.stoppingDistance;
-            animator.SetBool("isRunning", chasing);   // Course si poursuit le joueur
-            animator.SetBool("isMoving", !chasing && isMoving); // Marche seulement en patrouille
-        }
+        // TODO : détection du joueur (vue ou proximité)
 
-        // Patrouille normale
-        if (!chasing && !waiting && agent.remainingDistance <= agent.stoppingDistance)
-        {
-            StartCoroutine(WaitAndMove());
-        }
+        // TODO : choisir l'état : Patrouille ou Poursuite/Attaque
     }
 
-    bool CanSeePlayer()
+    // --- Méthodes de patrouille ---
+    void Patrouiller()
     {
-        Vector3 directionToPlayer = (player.position - transform.position).normalized;
-
-        if (Vector3.Distance(transform.position, player.position) > viewDistance)
-            return false;
-
-        if (Vector3.Angle(transform.forward, directionToPlayer) > viewAngle / 2f)
-            return false;
-
-        if (Physics.Raycast(transform.position + Vector3.up, directionToPlayer, out RaycastHit hit, viewDistance))
-        {
-            if (hit.transform != player)
-                return false;
-        }
-
-        return true;
+        // TODO : faire avancer vers le waypoint
+        // TODO : gérer l'attente au waypoint
     }
 
-    IEnumerator ChasePlayer()
+    IEnumerator WaitAndGoNext()
     {
-        chasing = true;
-        float chaseTime = 5f;
-        float elapsed = 0f;
-
-        while (elapsed < chaseTime)
-        {
-            agent.SetDestination(player.position);
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        chasing = false;
-        MoveToNextPoint();
+        // TODO : arrêter l'agent, attendre, passer au waypoint suivant
+        yield return null;
     }
 
-    IEnumerator WaitAndMove()
+    // --- Méthodes de poursuite et attaque ---
+    void ChasserOuAttaquer(float distanceToPlayer)
     {
-        waiting = true;
-        animator.SetBool("isMoving", false);
-        animator.SetBool("isRunning", false);
-        yield return new WaitForSeconds(waitTime);
-        MoveToNextPoint();
-        waiting = false;
+        // TODO : si trop loin → courir vers le joueur
+        // TODO : si assez proche → lancer l'attaque
     }
 
-    void MoveToNextPoint()
+    IEnumerator AttackRoutine()
     {
-        if (waypoints.Length == 0) return;
-        agent.SetDestination(waypoints[currentIndex].position);
-        currentIndex = (currentIndex + 1) % waypoints.Length;
+        // TODO : arrêter l'agent, lancer l'animation d'attaque, attendre cooldown
+        yield return null;
     }
+
+    // --- Détection du joueur ---
+    bool PeutVoirLeJoueur(float distanceToPlayer)
+    {
+        // TODO : vérifier l'angle de vision et les obstacles
+        return false;
+    }
+
+    // --- Retour à la patrouille ---
+    void RetourPatrouille()
+    {
+        // TODO : remettre le monstre sur son chemin de patrouille
+    }
+
+    // --- Optionnel : debug du cône de vision ---
+    void OnDrawGizmosSelected()
+    {
+    if (!Application.isPlaying) return;
+
+    // Position et orientation du monstre
+    Vector3 origin = transform.position + Vector3.up; // légèrement au-dessus du sol
+
+    // Couleur du cône
+    Gizmos.color = Color.red;
+
+    // Rayon de vision
+    float radius = viewDistance;
+
+    // Angle du cône (demi-angle)
+    float halfAngle = viewAngle / 2f;
+
+    // Directions gauche et droite
+    Vector3 leftDir = Quaternion.Euler(0, -halfAngle, 0) * transform.forward;
+    Vector3 rightDir = Quaternion.Euler(0, halfAngle, 0) * transform.forward;
+
+    // Ligne centrale (optionnelle)
+    Gizmos.DrawLine(origin, origin + transform.forward * radius);
+
+    // Côtés du cône
+    Gizmos.DrawLine(origin, origin + leftDir * radius);
+    Gizmos.DrawLine(origin, origin + rightDir * radius);
+
+    // Pour visualiser le cône “rempli”, on peut tracer plusieurs lignes intermédiaires
+    int segments = 10;
+    for (int i = 1; i < segments; i++)
+    {
+        float angle = -halfAngle + (viewAngle / segments) * i;
+        Vector3 dir = Quaternion.Euler(0, angle, 0) * transform.forward;
+        Gizmos.DrawLine(origin, origin + dir * radius);
+    }
+    }
+
 }

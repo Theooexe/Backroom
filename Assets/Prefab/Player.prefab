@@ -214,6 +214,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6671747029275788799}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2641288223185031845}
   m_SourcePrefab: {fileID: 100100000, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
 --- !u!1 &1725221299447864246 stripped
 GameObject:
@@ -421,6 +424,20 @@ MonoBehaviour:
   pauseKey: 27
   mainMenuSceneName: MainScene
   scriptsToDisableOnPause: []
+--- !u!114 &2641288223185031845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725221299447864246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 984d95d97eb3f47c390aa1f50b0dd753, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  maxHealth: 100
+  healthBar: {fileID: 0}
 --- !u!4 &2070221021787930892 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}

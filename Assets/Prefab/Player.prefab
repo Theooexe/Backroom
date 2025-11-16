@@ -152,6 +152,7 @@ GameObject:
   - component: {fileID: 4054304117244031960}
   - component: {fileID: 3238110205029541259}
   - component: {fileID: 7277622371726017673}
+  - component: {fileID: 6163983040412533079}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -301,10 +302,10 @@ MonoBehaviour:
   defaultHeight: 2
   crouchHeight: 1
   crouchSpeed: 1
-  walkClips: []
-  runClips: []
+  stepClip: {fileID: 0}
   audioSource: {fileID: 0}
-  stepInterval: 0.5
+  walkStepInterval: 0.5
+  runStepInterval: 0.3
 --- !u!114 &7277622371726017673
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -319,3 +320,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction
   interactDistance: 3
   playerCamera: {fileID: 9070785798248781346}
+--- !u!114 &6163983040412533079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8736145761764959957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6ba1a496d488428eb84555f1ee6dea1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPickup
+  pickupRange: 3
+  playerCamera: {fileID: 9070785798248781346}
+  itemLayer:
+    serializedVersion: 2
+    m_Bits: 0

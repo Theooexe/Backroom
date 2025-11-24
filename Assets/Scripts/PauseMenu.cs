@@ -10,6 +10,8 @@ public class PauseMenu : MonoBehaviour
     public KeyCode pauseKey = KeyCode.Escape;  // touche pour ouvrir/fermer
     public string mainMenuSceneName = "MainScene";
 
+    [HideInInspector] public bool allowPause = true;
+
     [Header("Gameplay")]
     public MonoBehaviour[] scriptsToDisableOnPause; // scripts de contrôle à couper
 
@@ -17,6 +19,9 @@ public class PauseMenu : MonoBehaviour
 
     void Update()
     {
+        if (!allowPause) return;
+
+
         if (Input.GetKeyDown(pauseKey))
         {
             if (IsPaused)

@@ -18,8 +18,8 @@ public class PlayerMove : MonoBehaviour
     public float crouchSpeed = 1f;
 
     [Header("Footsteps")]
-    public AudioClip stepClip;       // Même son pour marche et course
-    public AudioSource audioSource;  // AudioSource pour les pas
+    public AudioClip stepClip;
+    public AudioSource audioSource;
     public float walkStepInterval = 0.5f;
     public float runStepInterval = 0.3f;
 
@@ -27,6 +27,10 @@ public class PlayerMove : MonoBehaviour
     private float rotationX = 0f;
     private CharacterController characterController;
     private float stepTimer = 0f;
+
+    // ðŸ”¥ Ajout endurance
+    [HideInInspector] public bool IsTryingToRun = false;
+    private bool forceStopRunning = false;
 
     void Start()
     {
@@ -38,32 +42,43 @@ public class PlayerMove : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 1f; // 3D
+            audioSource.spatialBlend = 1f;
         }
     }
 
     void Update()
     {
-        // Inputs
         float inputX = Input.GetAxis("Horizontal");
         float inputZ = Input.GetAxis("Vertical");
-        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+
         bool isCrouching = Input.GetKey(KeyCode.LeftControl);
 
-        // Vitesse
-        float currentSpeed = isCrouching ? crouchSpeed : (isRunning ? runSpeed : walkSpeed);
+        // ðŸ”¥ DÃ©tection de "je veux courir"
+        IsTryingToRun = Input.GetKey(KeyCode.LeftShift);
+
+        // EmpÃªchÃ© par la stamina ?
+        if (forceStopRunning)
+            IsTryingToRun = false;
+
+        // Choix de la vitesse
+        float currentSpeed =
+            isCrouching ? crouchSpeed :
+            (IsTryingToRun ? runSpeed : walkSpeed);
+
         characterController.height = isCrouching ? crouchHeight : defaultHeight;
 
-        // Mouvement horizontal
+        // Construction du mouvement horizontal
         Vector3 move = (transform.forward * inputZ + transform.right * inputX) * currentSpeed;
 
-        // Gravité et saut
+        // Gestion gravitÃ© + saut
         if (characterController.isGrounded)
         {
             moveDirection.y = 0f;
+
             if (Input.GetButton("Jump") && !isCrouching)
                 moveDirection.y = jumpPower;
         }
+
         moveDirection.y -= gravity * Time.deltaTime;
 
         moveDirection.x = move.x;
@@ -71,14 +86,26 @@ public class PlayerMove : MonoBehaviour
 
         characterController.Move(moveDirection * Time.deltaTime);
 
-        // Sons de pas
         HandleFootstepSounds(currentSpeed);
 
-        // Rotation caméra
+        // Rotation camÃ©ra
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
+
         transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * lookSpeed);
+    }
+
+    public void ForceStopRunning()
+    {
+        forceStopRunning = true;
+        StartCoroutine(ResetRunBlock());
+    }
+
+    private IEnumerator ResetRunBlock()
+    {
+        yield return new WaitForSeconds(0.1f);
+        forceStopRunning = false;
     }
 
     void HandleFootstepSounds(float speed)
@@ -101,7 +128,7 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
-            stepTimer = interval; // reset timer quand on s'arrête
+            stepTimer = interval;
         }
     }
 }

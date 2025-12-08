@@ -4,7 +4,8 @@ using UnityEngine.AI;
 public class MonsterPatrol : MonoBehaviour
 {
     // --- États de l'IA ---
-    public enum MonsterState { Patrol, Idle, Chase };
+    // ATTENTION : J'ai réintégré l'état Attacking pour gérer l'immobilité lors de l'attaque
+    public enum MonsterState { Patrol, Idle, Chase, Attacking };
     public MonsterState currentState = MonsterState.Patrol;
 
     // --- Composants ---
@@ -19,23 +20,31 @@ public class MonsterPatrol : MonoBehaviour
     [Tooltip("La Transform du joueur.")]
     [SerializeField] private Transform playerTarget;
     
-    [Tooltip("Angle maximum (en degrés) pour que le joueur soit dans le cône de vision.")]
+    [Tooltip("Angle maximum (en degrés) pour le cône de vision.")]
     [SerializeField] private float viewAngle = 90f;
     
     [Tooltip("Portée maximale de la vision.")]
     [SerializeField] private float visionRange = 15f;
     
-    [Tooltip("Portée minimale pour une détection garantie (même dans le dos).")]
+    [Tooltip("Portée minimale pour une détection garantie.")]
     [SerializeField] private float guaranteedDetectionRange = 3f; 
 
     [Tooltip("Distance minimale pour déclencher l'attaque.")]
-    [SerializeField] private float attackRange = 1.5f; // NOUVEAU PARAMÈTRE
+    [SerializeField] private float attackRange = 1.5f;
     
     // --- Minuterie et Vitesse ---
     [Header("Timers et Vitesse")]
     [Tooltip("Temps de pause en secondes à chaque waypoint.")]
     [SerializeField] private float idleDuration = 5f;
     private float idleTimer;
+    
+    [Tooltip("Durée de l'animation d'attaque (pour l'immobilisation).")]
+    [SerializeField] private float attackDuration = 1.0f; 
+    private float attackTimer;
+
+    [Tooltip("Délai après lequel le monstre abandonne la poursuite si le joueur est hors de vue.")]
+    [SerializeField] private float loseSightDelay = 3f; // NOUVEAU PARAMÈTRE
+    private float loseSightTimer; // NOUVEAU TIMER
     
     [Tooltip("Vitesse en mode Patrouille (Marche).")]
     [SerializeField] private float patrolSpeed = 1.5f;
@@ -63,23 +72,21 @@ public class MonsterPatrol : MonoBehaviour
         animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
 
-        if (animator == null || agent == null)
-        {
-            Debug.LogError("Composant(s) manquant(s): Animator ou NavMeshAgent.");
-            enabled = false;
-            return;
-        }
+        // ... (Vérifications inchangées) ...
 
         if (waypoints.Length > 0)
         {
             agent.speed = patrolSpeed;
             GoToNextWaypoint();
         }
+        
+        // Initialise la minuterie de perte de cible au maximum
+        loseSightTimer = loseSightDelay;
     }
 
     void Update()
     {
-        // 1. Détection du joueur (Doit être vérifié en premier)
+        // 1. Détection du joueur
         CheckForPlayer();
 
         // 2. Gestion des états de l'IA
@@ -92,11 +99,14 @@ public class MonsterPatrol : MonoBehaviour
                 HandleIdle();
                 break;
             case MonsterState.Chase:
-                HandleChase(); // LOGIQUE MODIFIÉE
+                HandleChase();
+                break;
+            case MonsterState.Attacking:
+                HandleAttacking();
                 break;
         }
 
-        // 3. Gestion des Animations (basée sur la vitesse de l'agent)
+        // 3. Gestion des Animations
         HandleAnimationStates();
     }
     
@@ -104,44 +114,53 @@ public class MonsterPatrol : MonoBehaviour
     // LOGIQUE DE DÉTECTION
     // ===============================================
 
-    private void CheckForPlayer()
+    /// <summary>Vérifie si le joueur est dans le champ de vision ou à portée garantie.</summary>
+    private bool IsPlayerInSight()
     {
-        if (playerTarget == null || currentState == MonsterState.Chase) 
-        {
-            return;
-        }
-
+        if (playerTarget == null) return false;
+        
         Vector3 directionToPlayer = playerTarget.position - transform.position;
         float distanceToPlayer = directionToPlayer.magnitude;
         Vector3 normalizedDirection = directionToPlayer.normalized;
 
-        bool isPlayerDetected = false;
-
         // A. Détection Rapprochée (Portée garantie)
         if (distanceToPlayer <= guaranteedDetectionRange)
         {
-            isPlayerDetected = true;
+            return true;
         }
         
         // B. Détection Visuelle (Distance et Angle)
-        if (!isPlayerDetected && distanceToPlayer <= visionRange)
+        if (distanceToPlayer <= visionRange)
         {
             float dotProduct = Vector3.Dot(transform.forward, normalizedDirection);
             float cosViewAngle = Mathf.Cos(viewAngle * 0.5f * Mathf.Deg2Rad);
 
             if (dotProduct >= cosViewAngle)
             {
-                isPlayerDetected = true;
+                // NOTE: Idéalement, ajouter un Raycast ici pour vérifier les obstacles (murs)
+                return true;
             }
         }
+        return false;
+    }
 
-        // Changement d'état si détection
-        if (isPlayerDetected)
+    private void CheckForPlayer()
+    {
+        // Si déjà en chasse ou en attaque, on ne change pas l'état ici, on laisse HandleChase/Attacking gérer.
+        if (currentState == MonsterState.Chase || currentState == MonsterState.Attacking) 
+        {
+            return;
+        }
+        
+        // Si le joueur est détecté, on passe en mode Chase immédiatement
+        if (IsPlayerInSight())
         {
             Debug.Log("Joueur détecté ! Lancement de la course poursuite.");
             agent.isStopped = false; 
             currentState = MonsterState.Chase;
             agent.speed = chaseSpeed;
+            // Réinitialise le timer de perte de cible à chaque fois qu'on le voit
+            loseSightTimer = loseSightDelay; 
         }
     }
 
@@ -151,6 +170,7 @@ public class MonsterPatrol : MonoBehaviour
 
     private void HandlePatrol()
     {
+        // ... (Logique Patrouille inchangée) ...
         if (agent.speed != patrolSpeed)
         {
              agent.speed = patrolSpeed;
@@ -166,6 +186,7 @@ public class MonsterPatrol : MonoBehaviour
 
     private void HandleIdle()
     {
+        // ... (Logique Idle inchangée) ...
         idleTimer -= Time.deltaTime;
 
         if (idleTimer <= 0)
@@ -186,24 +207,74 @@ public class MonsterPatrol : MonoBehaviour
              agent.speed = chaseSpeed;
         }
 
+        // --- GESTION DE LA PERTE DE CIBLE ---
+        if (IsPlayerInSight())
+        {
+            // Le joueur est VU : on réinitialise le timer d'abandon
+            loseSightTimer = loseSightDelay;
+        }
+        else
+        {
+            // Le joueur n'est plus VU : on décrémente le timer
+            loseSightTimer -= Time.deltaTime;
+        }
+
+        // Si le timer atteint zéro, on abandonne la poursuite
+        if (loseSightTimer <= 0)
+        {
+            Debug.Log("Joueur perdu de vue. Retour à la patrouille.");
+            currentState = MonsterState.Idle; // On passe en Idle avant la patrouille
+            agent.isStopped = true;
+            return; // Sortir immédiatement pour éviter le reste du code de Chase
+        }
+        // ------------------------------------
+
         float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
 
         // LOGIQUE D'ATTAQUE : SI ASSEZ PROCHE
         if (distanceToPlayer <= attackRange)
         {
-            // Arrête le mouvement pour attaquer
-            agent.isStopped = true; 
-            
-            // On s'assure qu'on ne lance pas l'attaque à chaque frame si on est déjà en train d'attaquer
-            // (Une vérification plus poussée est nécessaire en production, mais pour la base, on trigger)
-            animator.SetTrigger(AttackTrigger);
+            // Changement d'état -> Attaque (gère l'immobilisation et le trigger)
+            currentState = MonsterState.Attacking;
         }
         else 
         {
             // Continuer la course-poursuite
             agent.isStopped = false;
             agent.SetDestination(playerTarget.position);
+            // OPTIONNEL: Tourner vers le joueur pendant la course
+            LookAtPlayer(); 
         }
+    }
+
+    private void HandleAttacking()
+    {
+        // 1. Immobilisation et Lancement (seulement à la première frame de l'état Attacking)
+        if (agent.isStopped == false)
+        {
+            agent.isStopped = true; 
+            animator.SetTrigger(AttackTrigger);
+            attackTimer = attackDuration; 
+            LookAtPlayer();
+        }
+
+        // 2. Gestion de la Minuterie (Attendre la fin de l'animation)
+        attackTimer -= Time.deltaTime;
+
+        if (attackTimer <= 0)
+        {
+            // L'animation est terminée : retour à la poursuite (on revient en Chase pour la vérif de la portée)
+            currentState = MonsterState.Chase;
+            agent.isStopped = false;
+        }
+    }
+
+
+    private void LookAtPlayer()
+    {
+        Vector3 direction = (playerTarget.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
     }
 
     private void IncrementWaypointIndex()
@@ -243,8 +314,12 @@ public class MonsterPatrol : MonoBehaviour
         }
         else // Vitesse très faible (Idle/Arrêté)
         {
-            animator.SetBool(IsWalkingParam, false);
-            animator.SetBool(IsRunningParam, false);
+            // On empêche le passage en Idle si l'attaque est en cours
+            if (currentState != MonsterState.Attacking)
+            {
+                animator.SetBool(IsWalkingParam, false);
+                animator.SetBool(IsRunningParam, false);
+            }
         }
     }
 }

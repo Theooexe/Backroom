@@ -1,128 +1,325 @@
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections;
 
 public class MonsterPatrol : MonoBehaviour
 {
-    // --- Références ---
-    public Transform player;         // Ton joueur
-    public Transform[] waypoints;    // Points de patrouille
-    private NavMeshAgent agent;
+    // --- États de l'IA ---
+    // ATTENTION : J'ai réintégré l'état Attacking pour gérer l'immobilité lors de l'attaque
+    public enum MonsterState { Patrol, Idle, Chase, Attacking };
+    public MonsterState currentState = MonsterState.Patrol;
+
+    // --- Composants ---
     private Animator animator;
+    private NavMeshAgent agent;
 
-    // --- Paramètres de déplacement ---
-    public float walkSpeed = 2f;
-    public float runSpeed = 6f;
+    // --- Cibles et Détection ---
+    [Header("Cibles et Détection")]
+    public Transform[] waypoints;
+    private int currentWaypointIndex = 0;
+    
+    [Tooltip("La Transform du joueur.")]
+    [SerializeField] private Transform playerTarget;
+    
+    [Tooltip("Angle maximum (en degrés) pour le cône de vision.")]
+    [SerializeField] private float viewAngle = 90f;
+    
+    [Tooltip("Portée maximale de la vision.")]
+    [SerializeField] private float visionRange = 15f;
+    
+    [Tooltip("Portée minimale pour une détection garantie.")]
+    [SerializeField] private float guaranteedDetectionRange = 3f; 
 
-    // --- Paramètres de détection ---
-    public float viewDistance =6f;
-    public float viewAngle = 60f;
-    public float detectionRadius = 3f; // Détection si le joueur est très proche
-    public float attackRange = 2f;     // Distance à laquelle il attaque
+    [Tooltip("Distance minimale pour déclencher l'attaque.")]
+    [SerializeField] private float attackRange = 1.5f;
+    
+    // --- Minuterie et Vitesse ---
+    [Header("Timers et Vitesse")]
+    [Tooltip("Temps de pause en secondes à chaque waypoint.")]
+    [SerializeField] private float idleDuration = 5f;
+    private float idleTimer;
+    
+    [Tooltip("Durée de l'animation d'attaque (pour l'immobilisation).")]
+    [SerializeField] private float attackDuration = 1.0f; 
+    private float attackTimer;
 
-    // --- États internes ---
-    private int currentWaypoint = 0;
-    private bool isWaiting = false;
-    private bool isAttacking = false;
-    private bool playerDetected = false;
+    [Tooltip("Délai après lequel le monstre abandonne la poursuite si le joueur est hors de vue.")]
+    [SerializeField] private float loseSightDelay = 3f; // NOUVEAU PARAMÈTRE
+    private float loseSightTimer; // NOUVEAU TIMER
+    
+    [Tooltip("Vitesse en mode Patrouille (Marche).")]
+    [SerializeField] private float patrolSpeed = 1.5f;
+    
+    [Tooltip("Vitesse en mode Poursuite (Course).")]
+    [SerializeField] private float chaseSpeed = 5f;
 
-    // --- Initialisation ---
+    // --- Paramètres d'Animation ---
+    [Header("Animation Settings")]
+    private const string IsWalkingParam = "isWalking";
+    private const string IsRunningParam = "isRunning";
+    private const string AttackTrigger = "Attack";
+
+    [Tooltip("Vitesse minimale pour passer de 'idle' à 'walk'.")]
+    [SerializeField] private float movementThreshold = 0.01f;
+    
+    private float runningThreshold = 2.0f; 
+
+    // ===============================================
+    // START & UPDATE
+    // ===============================================
+
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
 
-        // TODO : initialiser le NavMeshAgent
-        // TODO : lancer la première destination de patrouille
+        // ... (Vérifications inchangées) ...
+
+        if (waypoints.Length > 0)
+        {
+            agent.speed = patrolSpeed;
+            GoToNextWaypoint();
+        }
+        
+        // Initialise la minuterie de perte de cible au maximum
+        loseSightTimer = loseSightDelay;
     }
 
-    // --- Mise à jour à chaque frame ---
     void Update()
     {
-        // TODO : calculer la distance au joueur
+        // 1. Détection du joueur
+        CheckForPlayer();
 
-        // TODO : mettre à jour le paramètre Speed dans l'Animator
+        // 2. Gestion des états de l'IA
+        switch (currentState)
+        {
+            case MonsterState.Patrol:
+                HandlePatrol();
+                break;
+            case MonsterState.Idle:
+                HandleIdle();
+                break;
+            case MonsterState.Chase:
+                HandleChase();
+                break;
+            case MonsterState.Attacking:
+                HandleAttacking();
+                break;
+        }
 
-        // TODO : détection du joueur (vue ou proximité)
-
-        // TODO : choisir l'état : Patrouille ou Poursuite/Attaque
+        // 3. Gestion des Animations
+        HandleAnimationStates();
     }
+    
+    // ===============================================
+    // LOGIQUE DE DÉTECTION
+    // ===============================================
 
-    // --- Méthodes de patrouille ---
-    void Patrouiller()
+    /// <summary>Vérifie si le joueur est dans le champ de vision ou à portée garantie.</summary>
+    private bool IsPlayerInSight()
     {
-        // TODO : faire avancer vers le waypoint
-        // TODO : gérer l'attente au waypoint
-    }
+        if (playerTarget == null) return false;
+        
+        Vector3 directionToPlayer = playerTarget.position - transform.position;
+        float distanceToPlayer = directionToPlayer.magnitude;
+        Vector3 normalizedDirection = directionToPlayer.normalized;
 
-    IEnumerator WaitAndGoNext()
-    {
-        // TODO : arrêter l'agent, attendre, passer au waypoint suivant
-        yield return null;
-    }
+        // A. Détection Rapprochée (Portée garantie)
+        if (distanceToPlayer <= guaranteedDetectionRange)
+        {
+            return true;
+        }
+        
+        // B. Détection Visuelle (Distance et Angle)
+        if (distanceToPlayer <= visionRange)
+        {
+            float dotProduct = Vector3.Dot(transform.forward, normalizedDirection);
+            float cosViewAngle = Mathf.Cos(viewAngle * 0.5f * Mathf.Deg2Rad);
 
-    // --- Méthodes de poursuite et attaque ---
-    void ChasserOuAttaquer(float distanceToPlayer)
-    {
-        // TODO : si trop loin → courir vers le joueur
-        // TODO : si assez proche → lancer l'attaque
-    }
-
-    IEnumerator AttackRoutine()
-    {
-        // TODO : arrêter l'agent, lancer l'animation d'attaque, attendre cooldown
-        yield return null;
-    }
-
-    // --- Détection du joueur ---
-    bool PeutVoirLeJoueur(float distanceToPlayer)
-    {
-        // TODO : vérifier l'angle de vision et les obstacles
+            if (dotProduct >= cosViewAngle)
+            {
+                // NOTE: Idéalement, ajouter un Raycast ici pour vérifier les obstacles (murs)
+                return true;
+            }
+        }
         return false;
     }
 
-    // --- Retour à la patrouille ---
-    void RetourPatrouille()
+    private void CheckForPlayer()
     {
-        // TODO : remettre le monstre sur son chemin de patrouille
+        // Si déjà en chasse ou en attaque, on ne change pas l'état ici, on laisse HandleChase/Attacking gérer.
+        if (currentState == MonsterState.Chase || currentState == MonsterState.Attacking) 
+        {
+            return;
+        }
+        
+        // Si le joueur est détecté, on passe en mode Chase immédiatement
+        if (IsPlayerInSight())
+        {
+            Debug.Log("Joueur détecté ! Lancement de la course poursuite.");
+            agent.isStopped = false; 
+            currentState = MonsterState.Chase;
+            agent.speed = chaseSpeed;
+            // Réinitialise le timer de perte de cible à chaque fois qu'on le voit
+            loseSightTimer = loseSightDelay; 
+        }
     }
 
-    // --- Optionnel : debug du cône de vision ---
-    void OnDrawGizmosSelected()
+    // ===============================================
+    // LOGIQUE D'ÉTAT DE L'IA
+    // ===============================================
+
+    private void HandlePatrol()
     {
-    if (!Application.isPlaying) return;
+        // ... (Logique Patrouille inchangée) ...
+        if (agent.speed != patrolSpeed)
+        {
+             agent.speed = patrolSpeed;
+        }
 
-    // Position et orientation du monstre
-    Vector3 origin = transform.position + Vector3.up; // légèrement au-dessus du sol
-
-    // Couleur du cône
-    Gizmos.color = Color.red;
-
-    // Rayon de vision
-    float radius = viewDistance;
-
-    // Angle du cône (demi-angle)
-    float halfAngle = viewAngle / 2f;
-
-    // Directions gauche et droite
-    Vector3 leftDir = Quaternion.Euler(0, -halfAngle, 0) * transform.forward;
-    Vector3 rightDir = Quaternion.Euler(0, halfAngle, 0) * transform.forward;
-
-    // Ligne centrale (optionnelle)
-    Gizmos.DrawLine(origin, origin + transform.forward * radius);
-
-    // Côtés du cône
-    Gizmos.DrawLine(origin, origin + leftDir * radius);
-    Gizmos.DrawLine(origin, origin + rightDir * radius);
-
-    // Pour visualiser le cône “rempli”, on peut tracer plusieurs lignes intermédiaires
-    int segments = 10;
-    for (int i = 1; i < segments; i++)
-    {
-        float angle = -halfAngle + (viewAngle / segments) * i;
-        Vector3 dir = Quaternion.Euler(0, angle, 0) * transform.forward;
-        Gizmos.DrawLine(origin, origin + dir * radius);
-    }
+        if (agent.remainingDistance <= agent.stoppingDistance + 0.1f && !agent.pathPending)
+        {
+            currentState = MonsterState.Idle;
+            idleTimer = idleDuration;
+            agent.isStopped = true;
+        }
     }
 
+    private void HandleIdle()
+    {
+        // ... (Logique Idle inchangée) ...
+        idleTimer -= Time.deltaTime;
+
+        if (idleTimer <= 0)
+        {
+            currentState = MonsterState.Patrol;
+            IncrementWaypointIndex();
+            GoToNextWaypoint();
+            agent.isStopped = false;
+        }
+    }
+
+    private void HandleChase()
+    {
+        if (playerTarget == null) return;
+        
+        if (agent.speed != chaseSpeed)
+        {
+             agent.speed = chaseSpeed;
+        }
+
+        // --- GESTION DE LA PERTE DE CIBLE ---
+        if (IsPlayerInSight())
+        {
+            // Le joueur est VU : on réinitialise le timer d'abandon
+            loseSightTimer = loseSightDelay;
+        }
+        else
+        {
+            // Le joueur n'est plus VU : on décrémente le timer
+            loseSightTimer -= Time.deltaTime;
+        }
+
+        // Si le timer atteint zéro, on abandonne la poursuite
+        if (loseSightTimer <= 0)
+        {
+            Debug.Log("Joueur perdu de vue. Retour à la patrouille.");
+            currentState = MonsterState.Idle; // On passe en Idle avant la patrouille
+            agent.isStopped = true;
+            return; // Sortir immédiatement pour éviter le reste du code de Chase
+        }
+        // ------------------------------------
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
+
+        // LOGIQUE D'ATTAQUE : SI ASSEZ PROCHE
+        if (distanceToPlayer <= attackRange)
+        {
+            // Changement d'état -> Attaque (gère l'immobilisation et le trigger)
+            currentState = MonsterState.Attacking;
+        }
+        else 
+        {
+            // Continuer la course-poursuite
+            agent.isStopped = false;
+            agent.SetDestination(playerTarget.position);
+            // OPTIONNEL: Tourner vers le joueur pendant la course
+            LookAtPlayer(); 
+        }
+    }
+
+    private void HandleAttacking()
+    {
+        // 1. Immobilisation et Lancement (seulement à la première frame de l'état Attacking)
+        if (agent.isStopped == false)
+        {
+            agent.isStopped = true; 
+            animator.SetTrigger(AttackTrigger);
+            attackTimer = attackDuration; 
+            LookAtPlayer();
+        }
+
+        // 2. Gestion de la Minuterie (Attendre la fin de l'animation)
+        attackTimer -= Time.deltaTime;
+
+        if (attackTimer <= 0)
+        {
+            // L'animation est terminée : retour à la poursuite (on revient en Chase pour la vérif de la portée)
+            currentState = MonsterState.Chase;
+            agent.isStopped = false;
+        }
+    }
+
+
+    private void LookAtPlayer()
+    {
+        Vector3 direction = (playerTarget.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
+    }
+
+    private void IncrementWaypointIndex()
+    {
+        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
+    }
+
+    private void GoToNextWaypoint()
+    {
+        if (waypoints.Length > 0 && waypoints[currentWaypointIndex] != null)
+        {
+            agent.SetDestination(waypoints[currentWaypointIndex].position);
+        }
+    }
+
+    // ===============================================
+    // LOGIQUE D'ANIMATION
+    // ===============================================
+    
+    private void HandleAnimationStates()
+    {
+        Vector3 horizontalVelocity = new Vector3(agent.velocity.x, 0, agent.velocity.z);
+        float currentSpeed = horizontalVelocity.magnitude;
+
+        bool isWalking = currentSpeed > movementThreshold && currentSpeed < runningThreshold;
+        bool isRunning = currentSpeed >= runningThreshold; 
+
+        if (isRunning)
+        {
+            animator.SetBool(IsRunningParam, true);
+            animator.SetBool(IsWalkingParam, false);
+        }
+        else if (isWalking)
+        {
+            animator.SetBool(IsWalkingParam, true);
+            animator.SetBool(IsRunningParam, false);
+        }
+        else // Vitesse très faible (Idle/Arrêté)
+        {
+            // On empêche le passage en Idle si l'attaque est en cours
+            if (currentState != MonsterState.Attacking)
+            {
+                animator.SetBool(IsWalkingParam, false);
+                animator.SetBool(IsRunningParam, false);
+            }
+        }
+    }
 }

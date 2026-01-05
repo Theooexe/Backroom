@@ -217,6 +217,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2641288223185031845}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -9194429440635371811}
   m_SourcePrefab: {fileID: 100100000, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
 --- !u!1 &1725221299447864246 stripped
 GameObject:
@@ -438,6 +441,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 100
   healthBar: {fileID: 0}
+--- !u!114 &-9194429440635371811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725221299447864246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6ba1a496d488428eb84555f1ee6dea1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPickup
+  pickupRange: 3
+  itemLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  playerCamera: {fileID: 0}
 --- !u!4 &2070221021787930892 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}

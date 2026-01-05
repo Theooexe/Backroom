@@ -5,17 +5,19 @@ public class ItemSlot : MonoBehaviour
 {
     public Image icon;
 
-    // Appelé quand on ajoute un item dans ce slot
-    public void SetSprite(Sprite sprite)
+    private void Awake()
     {
-        icon.sprite = sprite;
-        icon.color = Color.white; // rendre visible
+        Hide();
     }
 
-    // Appelé si tu veux vider le slot plus tard
-    public void ClearSlot()
+    public void SetItem(Sprite sprite)
     {
-        icon.sprite = null;
-        icon.color = new Color(1, 1, 1, 0); // rendre invisible
+        icon.sprite = sprite;
+        icon.color = Color.white;
+    }
+
+    public void Hide()
+    {
+        icon.color = new Color(1f, 1f, 1f, 0f);
     }
 }

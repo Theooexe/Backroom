@@ -2,8 +2,7 @@ using UnityEngine;
 
 public class PlayerPickup : MonoBehaviour
 {
-    [Header("Pickup Settings")]
-    public float pickupRange = 3f;
+    public float pickupRange = 5f; // On augmente un peu la portée
     public LayerMask itemLayer;
     public Camera playerCamera;
 
@@ -17,34 +16,22 @@ public class PlayerPickup : MonoBehaviour
 
     void TryPickupItem()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, pickupRange, itemLayer);
+        if (playerCamera == null) return;
 
-        foreach (Collider hit in hits)
+        // On crée un rayon qui part du centre de la caméra
+        Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        RaycastHit hit;
+
+        // SphereCast utilise un rayon plus large (0.2) pour faciliter le ramassage
+        if (Physics.SphereCast(ray, 0.2f, out hit, pickupRange, itemLayer))
         {
-            Item item = hit.GetComponent<Item>();
-
+            Item item = hit.collider.GetComponent<Item>();
             if (item != null)
             {
-                PickupItem(item);
-                return;
+                InventoryManager.Instance.AddToInventory(item);
+                Destroy(item.gameObject);
+                Debug.Log("Objet ramassé !");
             }
         }
-    }
-
-    void PickupItem(Item item)
-    {
-        Debug.Log("✅ Item ramassé : " + item.itemName);
-
-        // AJOUT À L'INVENTAIRE (version propre)
-        InventoryManager.Instance.AddToInventory(item);
-
-        // Détruire l'objet ramassé
-        Destroy(item.gameObject);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, pickupRange);
     }
 }

@@ -1,128 +1,250 @@
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections;
 
 public class MonsterPatrol : MonoBehaviour
 {
-    // --- Références ---
-    public Transform player;         // Ton joueur
-    public Transform[] waypoints;    // Points de patrouille
-    private NavMeshAgent agent;
+    // --- États de l'IA ---
+    public enum MonsterState { Patrol, Idle, Chase };
+    public MonsterState currentState = MonsterState.Patrol;
+
+    // --- Composants ---
     private Animator animator;
+    private NavMeshAgent agent;
 
-    // --- Paramètres de déplacement ---
-    public float walkSpeed = 2f;
-    public float runSpeed = 6f;
+    // --- Cibles et Détection ---
+    [Header("Cibles et Détection")]
+    public Transform[] waypoints;
+    private int currentWaypointIndex = 0;
+    
+    [Tooltip("La Transform du joueur.")]
+    [SerializeField] private Transform playerTarget;
+    
+    [Tooltip("Angle maximum (en degrés) pour que le joueur soit dans le cône de vision.")]
+    [SerializeField] private float viewAngle = 90f;
+    
+    [Tooltip("Portée maximale de la vision.")]
+    [SerializeField] private float visionRange = 15f;
+    
+    [Tooltip("Portée minimale pour une détection garantie (même dans le dos).")]
+    [SerializeField] private float guaranteedDetectionRange = 3f; 
 
-    // --- Paramètres de détection ---
-    public float viewDistance =6f;
-    public float viewAngle = 60f;
-    public float detectionRadius = 3f; // Détection si le joueur est très proche
-    public float attackRange = 2f;     // Distance à laquelle il attaque
+    [Tooltip("Distance minimale pour déclencher l'attaque.")]
+    [SerializeField] private float attackRange = 1.5f; // NOUVEAU PARAMÈTRE
+    
+    // --- Minuterie et Vitesse ---
+    [Header("Timers et Vitesse")]
+    [Tooltip("Temps de pause en secondes à chaque waypoint.")]
+    [SerializeField] private float idleDuration = 5f;
+    private float idleTimer;
+    
+    [Tooltip("Vitesse en mode Patrouille (Marche).")]
+    [SerializeField] private float patrolSpeed = 1.5f;
+    
+    [Tooltip("Vitesse en mode Poursuite (Course).")]
+    [SerializeField] private float chaseSpeed = 5f;
 
-    // --- États internes ---
-    private int currentWaypoint = 0;
-    private bool isWaiting = false;
-    private bool isAttacking = false;
-    private bool playerDetected = false;
+    // --- Paramètres d'Animation ---
+    [Header("Animation Settings")]
+    private const string IsWalkingParam = "isWalking";
+    private const string IsRunningParam = "isRunning";
+    private const string AttackTrigger = "Attack";
 
-    // --- Initialisation ---
+    [Tooltip("Vitesse minimale pour passer de 'idle' à 'walk'.")]
+    [SerializeField] private float movementThreshold = 0.01f;
+    
+    private float runningThreshold = 2.0f; 
+
+    // ===============================================
+    // START & UPDATE
+    // ===============================================
+
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
 
-        // TODO : initialiser le NavMeshAgent
-        // TODO : lancer la première destination de patrouille
+        if (animator == null || agent == null)
+        {
+            Debug.LogError("Composant(s) manquant(s): Animator ou NavMeshAgent.");
+            enabled = false;
+            return;
+        }
+
+        if (waypoints.Length > 0)
+        {
+            agent.speed = patrolSpeed;
+            GoToNextWaypoint();
+        }
     }
 
-    // --- Mise à jour à chaque frame ---
     void Update()
     {
-        // TODO : calculer la distance au joueur
+        // 1. Détection du joueur (Doit être vérifié en premier)
+        CheckForPlayer();
 
-        // TODO : mettre à jour le paramètre Speed dans l'Animator
+        // 2. Gestion des états de l'IA
+        switch (currentState)
+        {
+            case MonsterState.Patrol:
+                HandlePatrol();
+                break;
+            case MonsterState.Idle:
+                HandleIdle();
+                break;
+            case MonsterState.Chase:
+                HandleChase(); // LOGIQUE MODIFIÉE
+                break;
+        }
 
-        // TODO : détection du joueur (vue ou proximité)
-
-        // TODO : choisir l'état : Patrouille ou Poursuite/Attaque
+        // 3. Gestion des Animations (basée sur la vitesse de l'agent)
+        HandleAnimationStates();
     }
+    
+    // ===============================================
+    // LOGIQUE DE DÉTECTION
+    // ===============================================
 
-    // --- Méthodes de patrouille ---
-    void Patrouiller()
+    private void CheckForPlayer()
     {
-        // TODO : faire avancer vers le waypoint
-        // TODO : gérer l'attente au waypoint
+        if (playerTarget == null || currentState == MonsterState.Chase) 
+        {
+            return;
+        }
+
+        Vector3 directionToPlayer = playerTarget.position - transform.position;
+        float distanceToPlayer = directionToPlayer.magnitude;
+        Vector3 normalizedDirection = directionToPlayer.normalized;
+
+        bool isPlayerDetected = false;
+
+        // A. Détection Rapprochée (Portée garantie)
+        if (distanceToPlayer <= guaranteedDetectionRange)
+        {
+            isPlayerDetected = true;
+        }
+        
+        // B. Détection Visuelle (Distance et Angle)
+        if (!isPlayerDetected && distanceToPlayer <= visionRange)
+        {
+            float dotProduct = Vector3.Dot(transform.forward, normalizedDirection);
+            float cosViewAngle = Mathf.Cos(viewAngle * 0.5f * Mathf.Deg2Rad);
+
+            if (dotProduct >= cosViewAngle)
+            {
+                isPlayerDetected = true;
+            }
+        }
+
+        // Changement d'état si détection
+        if (isPlayerDetected)
+        {
+            Debug.Log("Joueur détecté ! Lancement de la course poursuite.");
+            agent.isStopped = false; 
+            currentState = MonsterState.Chase;
+            agent.speed = chaseSpeed;
+        }
     }
 
-    IEnumerator WaitAndGoNext()
+    // ===============================================
+    // LOGIQUE D'ÉTAT DE L'IA
+    // ===============================================
+
+    private void HandlePatrol()
     {
-        // TODO : arrêter l'agent, attendre, passer au waypoint suivant
-        yield return null;
+        if (agent.speed != patrolSpeed)
+        {
+             agent.speed = patrolSpeed;
+        }
+
+        if (agent.remainingDistance <= agent.stoppingDistance + 0.1f && !agent.pathPending)
+        {
+            currentState = MonsterState.Idle;
+            idleTimer = idleDuration;
+            agent.isStopped = true;
+        }
     }
 
-    // --- Méthodes de poursuite et attaque ---
-    void ChasserOuAttaquer(float distanceToPlayer)
+    private void HandleIdle()
     {
-        // TODO : si trop loin → courir vers le joueur
-        // TODO : si assez proche → lancer l'attaque
+        idleTimer -= Time.deltaTime;
+
+        if (idleTimer <= 0)
+        {
+            currentState = MonsterState.Patrol;
+            IncrementWaypointIndex();
+            GoToNextWaypoint();
+            agent.isStopped = false;
+        }
     }
 
-    IEnumerator AttackRoutine()
+    private void HandleChase()
     {
-        // TODO : arrêter l'agent, lancer l'animation d'attaque, attendre cooldown
-        yield return null;
+        if (playerTarget == null) return;
+        
+        if (agent.speed != chaseSpeed)
+        {
+             agent.speed = chaseSpeed;
+        }
+
+        float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
+
+        // LOGIQUE D'ATTAQUE : SI ASSEZ PROCHE
+        if (distanceToPlayer <= attackRange)
+        {
+            // Arrête le mouvement pour attaquer
+            agent.isStopped = true; 
+            
+            // On s'assure qu'on ne lance pas l'attaque à chaque frame si on est déjà en train d'attaquer
+            // (Une vérification plus poussée est nécessaire en production, mais pour la base, on trigger)
+            animator.SetTrigger(AttackTrigger);
+        }
+        else 
+        {
+            // Continuer la course-poursuite
+            agent.isStopped = false;
+            agent.SetDestination(playerTarget.position);
+        }
     }
 
-    // --- Détection du joueur ---
-    bool PeutVoirLeJoueur(float distanceToPlayer)
+    private void IncrementWaypointIndex()
     {
-        // TODO : vérifier l'angle de vision et les obstacles
-        return false;
+        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
     }
 
-    // --- Retour à la patrouille ---
-    void RetourPatrouille()
+    private void GoToNextWaypoint()
     {
-        // TODO : remettre le monstre sur son chemin de patrouille
+        if (waypoints.Length > 0 && waypoints[currentWaypointIndex] != null)
+        {
+            agent.SetDestination(waypoints[currentWaypointIndex].position);
+        }
     }
 
-    // --- Optionnel : debug du cône de vision ---
-    void OnDrawGizmosSelected()
+    // ===============================================
+    // LOGIQUE D'ANIMATION
+    // ===============================================
+    
+    private void HandleAnimationStates()
     {
-    if (!Application.isPlaying) return;
+        Vector3 horizontalVelocity = new Vector3(agent.velocity.x, 0, agent.velocity.z);
+        float currentSpeed = horizontalVelocity.magnitude;
 
-    // Position et orientation du monstre
-    Vector3 origin = transform.position + Vector3.up; // légèrement au-dessus du sol
+        bool isWalking = currentSpeed > movementThreshold && currentSpeed < runningThreshold;
+        bool isRunning = currentSpeed >= runningThreshold; 
 
-    // Couleur du cône
-    Gizmos.color = Color.red;
-
-    // Rayon de vision
-    float radius = viewDistance;
-
-    // Angle du cône (demi-angle)
-    float halfAngle = viewAngle / 2f;
-
-    // Directions gauche et droite
-    Vector3 leftDir = Quaternion.Euler(0, -halfAngle, 0) * transform.forward;
-    Vector3 rightDir = Quaternion.Euler(0, halfAngle, 0) * transform.forward;
-
-    // Ligne centrale (optionnelle)
-    Gizmos.DrawLine(origin, origin + transform.forward * radius);
-
-    // Côtés du cône
-    Gizmos.DrawLine(origin, origin + leftDir * radius);
-    Gizmos.DrawLine(origin, origin + rightDir * radius);
-
-    // Pour visualiser le cône “rempli”, on peut tracer plusieurs lignes intermédiaires
-    int segments = 10;
-    for (int i = 1; i < segments; i++)
-    {
-        float angle = -halfAngle + (viewAngle / segments) * i;
-        Vector3 dir = Quaternion.Euler(0, angle, 0) * transform.forward;
-        Gizmos.DrawLine(origin, origin + dir * radius);
+        if (isRunning)
+        {
+            animator.SetBool(IsRunningParam, true);
+            animator.SetBool(IsWalkingParam, false);
+        }
+        else if (isWalking)
+        {
+            animator.SetBool(IsWalkingParam, true);
+            animator.SetBool(IsRunningParam, false);
+        }
+        else // Vitesse très faible (Idle/Arrêté)
+        {
+            animator.SetBool(IsWalkingParam, false);
+            animator.SetBool(IsRunningParam, false);
+        }
     }
-    }
-
 }

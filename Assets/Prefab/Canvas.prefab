@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3033421394392715415}
+  - component: {fileID: 3686184546362004432}
+  - component: {fileID: 8551880043422859051}
   m_Layer: 5
   m_Name: barre-de-vie-UI
   m_TagString: Untagged
@@ -38,6 +40,33 @@ RectTransform:
   m_AnchoredPosition: {x: 30, y: 40}
   m_SizeDelta: {x: 300, y: 30}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &3686184546362004432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247318512207467125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 769ee8369d53945bb89dc47112f24ed1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthBar
+  fillImage: {fileID: 8398635890783393654}
+  healthText: {fileID: 1772655053992091353}
+--- !u!114 &8551880043422859051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247318512207467125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b54f44b7f336428b9a5a761d2481487, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StaminaBar
+  fillImage: {fileID: 7608664309570686629}
 --- !u!1 &4100130555181254349
 GameObject:
   m_ObjectHideFlags: 0

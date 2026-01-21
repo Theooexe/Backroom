@@ -3,89 +3,57 @@ using UnityEngine;
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
-<<<<<<< Updated upstream
 
-    // On utilise directement tes scripts ItemSlot
-    public ItemSlot slotCle;
-    public ItemSlot slotMarteau;
+    [Header("Slots UI")]
+    public ItemSlot cleSlot;
+    public ItemSlot marteauSlot;
 
     private void Awake()
     {
-        Instance = this;
-        
-        // On vide les slots proprement au début
-        if(slotCle != null) slotCle.ClearSlot();
-        if(slotMarteau != null) slotMarteau.ClearSlot();
-=======
-    
-    [Header("Icônes des items")]
-    public GameObject iconCle;
-    public GameObject iconMarteau;
-    
-    void Awake()
-    {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
->>>>>>> Stashed changes
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
-    
-    void Start()
+
+    private void Start()
     {
-<<<<<<< Updated upstream
-        // On demande au slot de s'afficher lui-même
+        // Slots vides au départ
+        if (cleSlot != null) cleSlot.Hide();
+        if (marteauSlot != null) marteauSlot.Hide();
+
+        Debug.Log("InventoryManager initialisé !");
+    }
+
+    public void AddItem(Item item)
+    {
+        if (item == null)
+        {
+            Debug.LogWarning("AddItem appelé avec item null");
+            return;
+        }
+
+        if (item.icon == null)
+        {
+            Debug.LogWarning($"L'item {item.name} n'a pas d'icône assignée !");
+            return;
+        }
+
         switch (item.type)
         {
             case ItemType.Cle:
-                slotCle.SetSprite(item.icon);
+                if (cleSlot != null) cleSlot.SetItem(item.icon);
+                else Debug.LogError("cleSlot non assigné dans InventoryManager !");
                 break;
+
             case ItemType.Marteau:
-                slotMarteau.SetSprite(item.icon);
-=======
-        // Cacher les icônes au départ
-        if (iconCle != null) iconCle.SetActive(false);
-        if (iconMarteau != null) iconMarteau.SetActive(false);
-        
-        Debug.Log("InventoryManager initialisé !");
-    }
-    
-    public void AddItem(string itemName)
-    {
-        Debug.Log("Tentative d'ajout de l'item: " + itemName);
-        
-        switch(itemName.ToLower())
-        {
-            case "cle":
-            case "key":
-                if (iconCle != null)
-                {
-                    iconCle.SetActive(true);
-                    Debug.Log("✓ Clé affichée dans l'inventaire!");
-                }
-                else
-                {
-                    Debug.LogError("IconCle n'est pas assigné!");
-                }
+                if (marteauSlot != null) marteauSlot.SetItem(item.icon);
+                else Debug.LogError("marteauSlot non assigné dans InventoryManager !");
                 break;
-                
-            case "marteau":
-            case "hammer":
-                if (iconMarteau != null)
-                {
-                    iconMarteau.SetActive(true);
-                    Debug.Log("✓ Marteau affiché dans l'inventaire!");
-                }
-                else
-                {
-                    Debug.LogError("IconMarteau n'est pas assigné!");
-                }
-                break;
-                
+
             default:
-                Debug.LogWarning("Item inconnu: " + itemName);
->>>>>>> Stashed changes
+                Debug.LogWarning("Type d'item non géré : " + item.type);
                 break;
         }
+
+        Debug.Log($"Item ajouté à l'inventaire : {item.type}");
     }
 }

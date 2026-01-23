@@ -130,6 +130,7 @@ MonoBehaviour:
   type: 3
   itemName: Marteau
   canBePickedUp: 1
+  icon: {fileID: 21300000, guid: 25f0c77d202bb4465b78cc6a6bd3cec0, type: 3}
 --- !u!65 &4607442390208692827
 BoxCollider:
   m_ObjectHideFlags: 0

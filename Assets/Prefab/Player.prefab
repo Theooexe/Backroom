@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4139054322427369852}
   m_Layer: 0
   m_Name: Camera
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -147,15 +147,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 792.62866
+      value: 20.425367
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.526
+      value: 0.12499952
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -289.84723
+      value: -11.890056
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -219,13 +219,7 @@ PrefabInstance:
       addedObject: {fileID: 2641288223185031845}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 337174088024670190}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2272666615630133171}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 455969336576205017}
+      addedObject: {fileID: -9194429440635371811}
   m_SourcePrefab: {fileID: 100100000, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
 --- !u!1 &1725221299447864246 stripped
 GameObject:
@@ -417,7 +411,6 @@ MonoBehaviour:
   audioSource: {fileID: 9142963836976310108}
   walkStepInterval: 0.5
   runStepInterval: 0.3
-  IsTryingToRun: 0
 --- !u!114 &6671747029275788799
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,7 +426,6 @@ MonoBehaviour:
   pausePanel: {fileID: 8026463018287217631, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
   pauseKey: 27
   mainMenuSceneName: MainScene
-  allowPause: 1
   scriptsToDisableOnPause: []
 --- !u!114 &2641288223185031845
 MonoBehaviour:
@@ -449,7 +441,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 100
   healthBar: {fileID: 0}
---- !u!114 &337174088024670190
+--- !u!114 &-9194429440635371811
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -466,36 +458,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   playerCamera: {fileID: 0}
-  playerObjectives: {fileID: 455969336576205017}
-  keyItemName: Cle
-  hammerItemName: Marteau
---- !u!114 &2272666615630133171
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1725221299447864246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2974149c6fb01b409a280581634da96, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NavKeypad.KeypadInteractionFPV
---- !u!114 &455969336576205017
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1725221299447864246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5f9e564e5c4c2048b21c04818209fdc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerObjectives
-  hasKey: 0
-  hasHammer: 0
-  codeOk: 0
 --- !u!4 &2070221021787930892 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}

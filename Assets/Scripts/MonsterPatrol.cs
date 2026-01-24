@@ -3,60 +3,49 @@ using UnityEngine.AI;
 
 public class MonsterPatrol : MonoBehaviour
 {
-    // --- États de l'IA ---
     public enum MonsterState { Patrol, Idle, Chase };
     public MonsterState currentState = MonsterState.Patrol;
 
-    // --- Composants ---
     private Animator animator;
     private NavMeshAgent agent;
 
-    // --- Cibles et Détection ---
     [Header("Cibles et Détection")]
     public Transform[] waypoints;
     private int currentWaypointIndex = 0;
-    
-    [Tooltip("La Transform du joueur.")]
-    [SerializeField] private Transform playerTarget;
-    
-    [Tooltip("Angle maximum (en degrés) pour que le joueur soit dans le cône de vision.")]
-    [SerializeField] private float viewAngle = 90f;
-    
-    [Tooltip("Portée maximale de la vision.")]
-    [SerializeField] private float visionRange = 15f;
-    
-    [Tooltip("Portée minimale pour une détection garantie (même dans le dos).")]
-    [SerializeField] private float guaranteedDetectionRange = 3f; 
 
-    [Tooltip("Distance minimale pour déclencher l'attaque.")]
-    [SerializeField] private float attackRange = 1.5f; // NOUVEAU PARAMÈTRE
-    
-    // --- Minuterie et Vitesse ---
+    [SerializeField] private Transform playerTarget;
+    [SerializeField] private PlayerStats playerStats;
+
+    [SerializeField] private float loseSightDelay = 3f;
+    private float loseSightTimer = 0f;
+    [SerializeField] private float viewAngle = 90f;
+    [SerializeField] private float visionRange = 15f;
+    [SerializeField] private float guaranteedDetectionRange = 3f;
+    [SerializeField] private float attackRange = 1.5f;
+    [SerializeField] private float damage = 10f;
+    [SerializeField] private float attackCooldown = 1f;
+
+    private float lastAttackTime = 0f;
+
     [Header("Timers et Vitesse")]
-    [Tooltip("Temps de pause en secondes à chaque waypoint.")]
     [SerializeField] private float idleDuration = 5f;
     private float idleTimer;
-    
-    [Tooltip("Vitesse en mode Patrouille (Marche).")]
     [SerializeField] private float patrolSpeed = 1.5f;
-    
-    [Tooltip("Vitesse en mode Poursuite (Course).")]
-    [SerializeField] private float chaseSpeed = 5f;
+    [SerializeField] private float chaseSpeed = 1.5f;
 
-    // --- Paramètres d'Animation ---
     [Header("Animation Settings")]
     private const string IsWalkingParam = "isWalking";
     private const string IsRunningParam = "isRunning";
     private const string AttackTrigger = "Attack";
-
-    [Tooltip("Vitesse minimale pour passer de 'idle' à 'walk'.")]
     [SerializeField] private float movementThreshold = 0.01f;
+    private float runningThreshold = 1.5f;
     
-    private float runningThreshold = 2.0f; 
+    [Header("Audio")]
+    [SerializeField] private AudioSource chaseAudioSource;
+    [SerializeField] private AudioClip chaseClip;
 
-    // ===============================================
-    // START & UPDATE
-    // ===============================================
+    [SerializeField] private float fadeOutSpeed = 1f; // volume par seconde
+    private bool isFadingOut = false;
 
     void Start()
     {
@@ -79,10 +68,8 @@ public class MonsterPatrol : MonoBehaviour
 
     void Update()
     {
-        // 1. Détection du joueur (Doit être vérifié en premier)
         CheckForPlayer();
 
-        // 2. Gestion des états de l'IA
         switch (currentState)
         {
             case MonsterState.Patrol:
@@ -92,69 +79,72 @@ public class MonsterPatrol : MonoBehaviour
                 HandleIdle();
                 break;
             case MonsterState.Chase:
-                HandleChase(); // LOGIQUE MODIFIÉE
+                HandleChase();
                 break;
         }
-
-        // 3. Gestion des Animations (basée sur la vitesse de l'agent)
-        HandleAnimationStates();
-    }
-    
-    // ===============================================
-    // LOGIQUE DE DÉTECTION
-    // ===============================================
-
-    private void CheckForPlayer()
-    {
-        if (playerTarget == null || currentState == MonsterState.Chase) 
-        {
-            return;
-        }
-
-        Vector3 directionToPlayer = playerTarget.position - transform.position;
-        float distanceToPlayer = directionToPlayer.magnitude;
-        Vector3 normalizedDirection = directionToPlayer.normalized;
-
-        bool isPlayerDetected = false;
-
-        // A. Détection Rapprochée (Portée garantie)
-        if (distanceToPlayer <= guaranteedDetectionRange)
-        {
-            isPlayerDetected = true;
-        }
         
-        // B. Détection Visuelle (Distance et Angle)
-        if (!isPlayerDetected && distanceToPlayer <= visionRange)
+        if (isFadingOut && chaseAudioSource != null)
         {
-            float dotProduct = Vector3.Dot(transform.forward, normalizedDirection);
-            float cosViewAngle = Mathf.Cos(viewAngle * 0.5f * Mathf.Deg2Rad);
-
-            if (dotProduct >= cosViewAngle)
+            chaseAudioSource.volume -= fadeOutSpeed * Time.deltaTime;
+            if (chaseAudioSource.volume <= 0f)
             {
-                isPlayerDetected = true;
+                chaseAudioSource.Stop();
+                chaseAudioSource.volume = 1f;
+                isFadingOut = false;
             }
         }
 
-        // Changement d'état si détection
-        if (isPlayerDetected)
-        {
-            Debug.Log("Joueur détecté ! Lancement de la course poursuite.");
-            agent.isStopped = false; 
-            currentState = MonsterState.Chase;
-            agent.speed = chaseSpeed;
-        }
+
+        HandleAnimationStates();
     }
 
-    // ===============================================
-    // LOGIQUE D'ÉTAT DE L'IA
-    // ===============================================
+    private bool CanSeePlayer()
+    {
+        if (playerTarget == null) return false;
+
+        Vector3 dir = playerTarget.position - transform.position;
+        float distance = dir.magnitude;
+        Vector3 dirNorm = dir.normalized;
+
+        if (distance > visionRange && distance > guaranteedDetectionRange) return false;
+
+        if (distance > guaranteedDetectionRange)
+        {
+            float dot = Vector3.Dot(transform.forward, dirNorm);
+            if (dot < Mathf.Cos(viewAngle * 0.5f * Mathf.Deg2Rad)) return false;
+        }
+
+        RaycastHit hit;
+        Vector3 eyePosition = transform.position + Vector3.up * 1.5f;
+        if (Physics.Raycast(eyePosition, dirNorm, out hit, visionRange))
+        {
+            if (hit.transform != playerTarget) return false;
+        }
+
+        return true;
+    }
+
+    private void CheckForPlayer()
+    {
+        if (playerTarget == null || currentState == MonsterState.Chase) return;
+
+        if (CanSeePlayer())
+        {
+            if (currentState != MonsterState.Chase)
+            {
+                currentState = MonsterState.Chase;
+                agent.isStopped = false;
+                agent.speed = chaseSpeed;
+                if (chaseAudioSource != null && !chaseAudioSource.isPlaying)
+                    chaseAudioSource.Play();
+            }
+        }
+
+    }
 
     private void HandlePatrol()
     {
-        if (agent.speed != patrolSpeed)
-        {
-             agent.speed = patrolSpeed;
-        }
+        if (agent.speed != patrolSpeed) agent.speed = patrolSpeed;
 
         if (agent.remainingDistance <= agent.stoppingDistance + 0.1f && !agent.pathPending)
         {
@@ -167,7 +157,6 @@ public class MonsterPatrol : MonoBehaviour
     private void HandleIdle()
     {
         idleTimer -= Time.deltaTime;
-
         if (idleTimer <= 0)
         {
             currentState = MonsterState.Patrol;
@@ -180,30 +169,73 @@ public class MonsterPatrol : MonoBehaviour
     private void HandleChase()
     {
         if (playerTarget == null) return;
-        
-        if (agent.speed != chaseSpeed)
+
+        if (CanSeePlayer()) loseSightTimer = 0f;
+        else
         {
-             agent.speed = chaseSpeed;
+            loseSightTimer += Time.deltaTime;
+            if (loseSightTimer >= loseSightDelay)
+            {
+                currentState = MonsterState.Patrol;
+                agent.speed = patrolSpeed;
+                GoToNextWaypoint();
+                agent.isStopped = false;
+                loseSightTimer = 0f;
+                if (chaseAudioSource != null && chaseAudioSource.isPlaying)
+                    isFadingOut = true;
+                return;
+            }
         }
 
-        float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
+        if (agent.speed != chaseSpeed) agent.speed = chaseSpeed;
 
-        // LOGIQUE D'ATTAQUE : SI ASSEZ PROCHE
-        if (distanceToPlayer <= attackRange)
+        float distance = Vector3.Distance(transform.position, playerTarget.position);
+
+        if (distance <= attackRange)
         {
-            // Arrête le mouvement pour attaquer
-            agent.isStopped = true; 
-            
-            // On s'assure qu'on ne lance pas l'attaque à chaque frame si on est déjà en train d'attaquer
-            // (Une vérification plus poussée est nécessaire en production, mais pour la base, on trigger)
-            animator.SetTrigger(AttackTrigger);
+            agent.isStopped = true;
+            if (Time.time - lastAttackTime >= attackCooldown)
+            {
+                AttackPlayer();
+                lastAttackTime = Time.time;
+                animator.SetTrigger(AttackTrigger);
+            }
         }
-        else 
+        else
         {
-            // Continuer la course-poursuite
             agent.isStopped = false;
             agent.SetDestination(playerTarget.position);
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        Vector3 position = transform.position + Vector3.up * 1.5f;
+        Vector3 forward = transform.forward;
+
+        Gizmos.color = new Color(1f, 0f, 0f, 0.25f);
+
+        int segments = 20;
+        float halfAngle = viewAngle * 0.5f;
+
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = -halfAngle + (viewAngle / segments) * i;
+            Vector3 dir = Quaternion.Euler(0, angle, 0) * forward * visionRange;
+            RaycastHit hit;
+            if (!Physics.Raycast(position, dir.normalized, out hit, visionRange))
+                Gizmos.DrawLine(position, position + dir);
+            else
+                Gizmos.DrawLine(position, hit.point);
+        }
+
+        Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
+        Gizmos.DrawWireSphere(transform.position, guaranteedDetectionRange);
+    }
+
+    private void AttackPlayer()
+    {
+        if (playerStats != null) playerStats.TakeDamage(damage);
     }
 
     private void IncrementWaypointIndex()
@@ -214,37 +246,18 @@ public class MonsterPatrol : MonoBehaviour
     private void GoToNextWaypoint()
     {
         if (waypoints.Length > 0 && waypoints[currentWaypointIndex] != null)
-        {
             agent.SetDestination(waypoints[currentWaypointIndex].position);
-        }
     }
 
-    // ===============================================
-    // LOGIQUE D'ANIMATION
-    // ===============================================
-    
     private void HandleAnimationStates()
     {
-        Vector3 horizontalVelocity = new Vector3(agent.velocity.x, 0, agent.velocity.z);
-        float currentSpeed = horizontalVelocity.magnitude;
+        Vector3 horVel = new Vector3(agent.velocity.x, 0, agent.velocity.z);
+        float speed = horVel.magnitude;
 
-        bool isWalking = currentSpeed > movementThreshold && currentSpeed < runningThreshold;
-        bool isRunning = currentSpeed >= runningThreshold; 
+        bool isWalking = speed > movementThreshold && speed < runningThreshold;
+        bool isRunning = speed >= runningThreshold;
 
-        if (isRunning)
-        {
-            animator.SetBool(IsRunningParam, true);
-            animator.SetBool(IsWalkingParam, false);
-        }
-        else if (isWalking)
-        {
-            animator.SetBool(IsWalkingParam, true);
-            animator.SetBool(IsRunningParam, false);
-        }
-        else // Vitesse très faible (Idle/Arrêté)
-        {
-            animator.SetBool(IsWalkingParam, false);
-            animator.SetBool(IsRunningParam, false);
-        }
+        animator.SetBool(IsRunningParam, isRunning);
+        animator.SetBool(IsWalkingParam, isWalking);
     }
 }

@@ -91,8 +91,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc084245c3ab94c619c6ac1b9f5c39c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
-  slotCle: {fileID: 0}
-  slotMarteau: {fileID: 0}
+  cleSlot: {fileID: 2768504908155635812}
+  marteauSlot: {fileID: 8644575919553411399}
 --- !u!1001 &2504299221480401275
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -190,6 +190,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3f7bd752f7e43458f8157c3ebb59faa3, type: 3}
+--- !u!114 &2768504908155635812 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 336285992571543839, guid: 3f7bd752f7e43458f8157c3ebb59faa3, type: 3}
+  m_PrefabInstance: {fileID: 2504299221480401275}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a8a53a4d03e84b7883b012e8af38cba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemSlot
 --- !u!224 &7541255110103683053 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5361224532251387542, guid: 3f7bd752f7e43458f8157c3ebb59faa3, type: 3}
@@ -399,3 +410,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5361224532251387542, guid: 3f7bd752f7e43458f8157c3ebb59faa3, type: 3}
   m_PrefabInstance: {fileID: 8312811119065094232}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8644575919553411399 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 336285992571543839, guid: 3f7bd752f7e43458f8157c3ebb59faa3, type: 3}
+  m_PrefabInstance: {fileID: 8312811119065094232}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a8a53a4d03e84b7883b012e8af38cba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemSlot

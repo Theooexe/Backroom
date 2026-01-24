@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -28,13 +27,18 @@ public class PlayerMove : MonoBehaviour
     private CharacterController characterController;
     private float stepTimer = 0f;
 
-    // 🔥 Ajout endurance
-    [HideInInspector] public bool IsTryingToRun = false;
+    // 🔥 Endurance
+    [HideInInspector] public bool IsTryingToRun = false; // appuie sur shift
+    [HideInInspector] public bool IsRunning = false;    // sprint réel
     private bool forceStopRunning = false;
+
+    [HideInInspector] public PlayerStats playerStats; // référence pour stamina
 
     void Start()
     {
         characterController = GetComponent<CharacterController>();
+        playerStats = GetComponent<PlayerStats>();
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -50,7 +54,6 @@ public class PlayerMove : MonoBehaviour
     {
         float inputX = Input.GetAxis("Horizontal");
         float inputZ = Input.GetAxis("Vertical");
-
         bool isCrouching = Input.GetKey(KeyCode.LeftControl);
 
         // 🔥 Détection de "je veux courir"
@@ -60,17 +63,20 @@ public class PlayerMove : MonoBehaviour
         if (forceStopRunning)
             IsTryingToRun = false;
 
+        // 🔥 Détermine si le joueur court réellement
+        IsRunning = IsTryingToRun && !forceStopRunning && playerStats != null && playerStats.CurrentStamina > 0f;
+
         // Choix de la vitesse
         float currentSpeed =
             isCrouching ? crouchSpeed :
-            (IsTryingToRun ? runSpeed : walkSpeed);
+            (IsRunning ? runSpeed : walkSpeed);
 
         characterController.height = isCrouching ? crouchHeight : defaultHeight;
 
-        // Construction du mouvement horizontal
+        // Mouvement horizontal
         Vector3 move = (transform.forward * inputZ + transform.right * inputX) * currentSpeed;
 
-        // Gestion gravité + saut
+        // Gravité + saut
         if (characterController.isGrounded)
         {
             moveDirection.y = 0f;

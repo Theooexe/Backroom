@@ -30,8 +30,7 @@ public class Door : MonoBehaviour, IInteractable
             audioSource = gameObject.AddComponent<AudioSource>();
 
         if (isExitDoor && playerObjectives == null)
-            playerObjectives = FindObjectOfType<PlayerObjectives>();
-
+            playerObjectives = FindFirstObjectByType<PlayerObjectives>();
     }
 
     public void Interact()

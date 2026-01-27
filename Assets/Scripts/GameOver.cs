@@ -20,7 +20,7 @@ public class GameOverMenu : MonoBehaviour
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
         
-        pauseMenu = FindObjectOfType<PauseMenu>();
+        pauseMenu = Object.FindFirstObjectByType<PauseMenu>();
     }
 
     public void ShowGameOver()

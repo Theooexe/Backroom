@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1965046323386680669
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5182521459548187789}
+  m_Layer: 7
+  m_Name: FlashlightHold
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5182521459548187789
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1965046323386680669}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0.301, y: 1.424, z: 0.271}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2070221021787930892}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &7162566429522661987
 GameObject:
   m_ObjectHideFlags: 0
@@ -73,7 +104,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 383
+    m_Bits: 895
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -467,6 +498,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1073864753492134118}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5182521459548187789}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
@@ -485,13 +519,13 @@ PrefabInstance:
       addedObject: {fileID: 7997380748742602799}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -9194429440635371811}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 3851274492441474352}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6980833126359709813}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3609540873761623147}
   m_SourcePrefab: {fileID: 100100000, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
 --- !u!1 &1725221299447864246 stripped
 GameObject:
@@ -686,23 +720,6 @@ MonoBehaviour:
   IsTryingToRun: 0
   IsRunning: 0
   playerStats: {fileID: 0}
---- !u!114 &-9194429440635371811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1725221299447864246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6ba1a496d488428eb84555f1ee6dea1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerPickup
-  pickupRange: 3
-  itemLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  playerCamera: {fileID: 1686074638564355702}
 --- !u!114 &3851274492441474352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -737,6 +754,24 @@ MonoBehaviour:
   staminaConsumptionRate: 6
   staminaRecoveryRate: 20
   damageClip: {fileID: 8300000, guid: 9389b7e20a7da4ff9ad0684202f0effd, type: 3}
+--- !u!114 &3609540873761623147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1725221299447864246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6ba1a496d488428eb84555f1ee6dea1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPickup
+  pickupRange: 1
+  itemLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  playerCamera: {fileID: 1686074638564355702}
+  flashlightHoldPoint: {fileID: 5182521459548187789}
 --- !u!4 &2070221021787930892 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}

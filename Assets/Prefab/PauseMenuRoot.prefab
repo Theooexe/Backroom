@@ -41,6 +41,50 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4461435877442486183}
     m_Modifications:
+    - target: {fileID: 1933954010198368790, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_UiScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1933954010198368790, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_MatchWidthOrHeight
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1933954010198368790, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 1933954010198368790, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 2006950966285834553, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_Color.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2012135475118231304, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2012135475118231304, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2012135475118231304, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2012135475118231304, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2012135475118231304, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1316
+      objectReference: {fileID: 0}
+    - target: {fileID: 2012135475118231304, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 678
+      objectReference: {fileID: 0}
     - target: {fileID: 2660234635974053919, guid: c871e8fd494564f69ba3442dc8ea92e5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 1
@@ -248,6 +292,14 @@ PrefabInstance:
       propertyPath: pausePanel
       value: 
       objectReference: {fileID: 8070912764660566025}
+    - target: {fileID: 5619972575179033896, guid: a1e91cb5d214d46cbafe97bb9bd95f0b, type: 3}
+      propertyPath: audioSourcesToPause.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5619972575179033896, guid: a1e91cb5d214d46cbafe97bb9bd95f0b, type: 3}
+      propertyPath: scriptsToDisableOnPause.Array.size
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

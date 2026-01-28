@@ -22,6 +22,8 @@ public class PlayerMove : MonoBehaviour
     public float walkStepInterval = 0.5f;
     public float runStepInterval = 0.3f;
 
+    [HideInInspector] public bool canLook = true; // rotation caméra activée ou non
+
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0f;
     private CharacterController characterController;
@@ -83,7 +85,18 @@ public class PlayerMove : MonoBehaviour
 
             if (Input.GetButton("Jump") && !isCrouching)
                 moveDirection.y = jumpPower;
+        }   
+
+        // Rotation caméra
+        if (canLook)
+        {
+            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
+            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
+            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
+
+            transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * lookSpeed);
         }
+
 
         moveDirection.y -= gravity * Time.deltaTime;
 

@@ -4,7 +4,7 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Ennemis
+  - KeypadButton
   layers:
   - Default
   - TransparentFX

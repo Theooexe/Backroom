@@ -9162,12 +9162,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Door
   isExitDoor: 1
   playerObjectives: {fileID: 0}
-  requireKey: 1
-  requireCode: 1
-  openSound: {fileID: 0}
-  closeSound: {fileID: 0}
+  blockingBoard: {fileID: 0}
+  openSound: {fileID: 8300000, guid: e0c5ab5c250885a4c89ec38ea6648dff, type: 3}
+  closeSound: {fileID: 8300000, guid: 3c1c01df66c1c1445972a61ae04a46b1, type: 3}
   openAngle: 90
   smooth: 2
+  messageText: {fileID: 0}
+  messageDuration: 4
 --- !u!1001 &4390039240134683696
 PrefabInstance:
   m_ObjectHideFlags: 0

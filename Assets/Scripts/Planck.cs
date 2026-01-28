@@ -19,24 +19,20 @@ public class Plank : MonoBehaviour, IInteractable
 
         if (inventory == null)
         {
-            Debug.LogWarning("⚠️ InventoryManager introuvable");
             return;
         }
 
         if (!inventory.HasHammer)
         {
-            Debug.Log("🛑 Il faut un marteau pour casser la planche");
+            Debug.Log("Trouvez un outil pour casser la planche");
             return;
         }
 
-        // 🔨 Consommer le marteau
+      
         inventory.RemoveHammer();
 
-        // 🔊 Son
         if (breakSound != null)
             audioSource.PlayOneShot(breakSound);
-
-        // 🪵 Détruire la planche
         Destroy(gameObject, 0.05f);
     }
 }

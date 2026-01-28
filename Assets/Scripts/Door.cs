@@ -1,19 +1,25 @@
 using UnityEngine;
+using TMPro;
 
 public class Door : MonoBehaviour, IInteractable
 {
-    [Header("Exit Door Lock (optional)")]
-    public bool isExitDoor = false;
-    public PlayerObjectives playerObjectives;
+    [Header("Door Settings")]
+    public bool isExitDoor = false;                  
+    public PlayerObjectives playerObjectives;        
 
-    public bool requireKey = true;
-    public bool requireCode = true;
+    [Header("Blocking Object (optional)")]
+    public GameObject blockingBoard;                 
 
     [Header("Door Settings")]
     public AudioClip openSound;
     public AudioClip closeSound;
     public float openAngle = 90f;
     public float smooth = 2f;
+
+    [Header("UI Messages")]
+    public TMP_Text messageText;                     
+    public float messageDuration = 2f;              
+    private float messageTimer = 0f;
 
     private bool isOpen = false;
     private Quaternion closedRotation;
@@ -33,30 +39,45 @@ public class Door : MonoBehaviour, IInteractable
             playerObjectives = FindFirstObjectByType<PlayerObjectives>();
     }
 
+    void Update()
+    {
+        // Animation ouverture / fermeture
+        transform.rotation = Quaternion.Slerp(transform.rotation,
+                                              isOpen ? openRotation : closedRotation,
+                                              Time.deltaTime * smooth);
+
+        // Timer pour message
+        if (messageText != null && messageText.gameObject.activeSelf)
+        {
+            messageTimer += Time.unscaledDeltaTime;
+            if (messageTimer >= messageDuration)
+            {
+                messageText.gameObject.SetActive(false);
+                messageTimer = 0f;
+            }
+        }
+    }
+
     public void Interact()
     {
-        // 🔒 Vérification porte de sortie
         if (isExitDoor)
         {
             if (playerObjectives == null)
+                return;
+
+            // Message uniquement si la clé manque
+            if (!playerObjectives.hasKey)
             {
-                Debug.LogWarning("⚠️ Exit door: PlayerObjectives manquant");
+                ShowMessage("Détruisez la planche et trouvez la clé");
                 return;
             }
 
-            bool ok =
-                (!requireKey || playerObjectives.hasKey) &&
-                (!requireCode || playerObjectives.codeOk);
-
-            if (!ok)
-            {
-                Debug.Log("🔒 Porte verrouillée");
-                Debug.Log($"🔒 Etat: key={playerObjectives.hasKey} code={playerObjectives.codeOk}");
+            // Si planche encore là, la porte ne s'ouvre pas mais aucun message
+            if (blockingBoard != null)
                 return;
-            }
         }
 
-        // 🚪 Ouvrir / fermer
+        // Ouvrir / fermer la porte
         isOpen = !isOpen;
 
         if (audioSource != null)
@@ -68,18 +89,26 @@ public class Door : MonoBehaviour, IInteractable
         }
     }
 
-    public void UnlockByCode()
+    public void RemoveBlockingBoard()
     {
-        requireCode = false;
-        Debug.Log("🔓 Door: code validé");
+        if (blockingBoard != null)
+        {
+            Destroy(blockingBoard);
+            blockingBoard = null;
+        }
     }
 
-
-    void Update()
+    private void ShowMessage(string text)
     {
-        if (isOpen)
-            transform.rotation = Quaternion.Slerp(transform.rotation, openRotation, Time.deltaTime * smooth);
+        if (messageText != null)
+        {
+            messageText.text = text;
+            messageText.gameObject.SetActive(true);
+            messageTimer = 0f;
+        }
         else
-            transform.rotation = Quaternion.Slerp(transform.rotation, closedRotation, Time.deltaTime * smooth);
+        {
+            Debug.Log(text);
+        }
     }
 }

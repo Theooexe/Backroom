@@ -14,17 +14,20 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private StatBar healthBar;
     [SerializeField] private StatBar staminaBar;
 
+    [Header("Game Over")]
+    [SerializeField] private GameOverMenu gameOverMenu;  // référence au script GameOverManager
+
     [Header("Sprint / Stamina")]
-    [SerializeField] private float staminaConsumptionRate = 20f; // par seconde
-    [SerializeField] private float staminaRecoveryRate = 10f; // par seconde
+    [SerializeField] private float staminaConsumptionRate = 20f;
+    [SerializeField] private float staminaRecoveryRate = 10f;
 
     [Header("Son")]
     [SerializeField] private AudioClip damageClip;
     private AudioSource audioSource;
 
     private PlayerMove playerMove;
+    private bool isDead = false;         // ⭐
 
-    // Propriété publique pour lecture par d'autres scripts
     public float CurrentStamina => currentStamina;
     public float CurrentHealth => currentHealth;
 
@@ -46,6 +49,7 @@ public class PlayerStats : MonoBehaviour
 
     private void Update()
     {
+        if (isDead) return; // ⭐
         HandleStamina();
     }
 
@@ -54,27 +58,20 @@ public class PlayerStats : MonoBehaviour
     {
         if (playerMove == null) return;
 
-        // Sprint activé et stamina > 0 ?
         if (playerMove.IsTryingToRun && currentStamina > 0f)
         {
-            // Consomme la stamina
             currentStamina -= staminaConsumptionRate * Time.deltaTime;
             currentStamina = Mathf.Max(currentStamina, 0f);
 
-            // Si stamina vide, empêche le sprint
             if (currentStamina <= 0f)
-            {
                 playerMove.ForceStopRunning();
-            }
         }
         else
         {
-            // Régénération
             currentStamina += staminaRecoveryRate * Time.deltaTime;
             currentStamina = Mathf.Min(currentStamina, maxStamina);
         }
 
-        // Met à jour la barre
         if (staminaBar != null)
             staminaBar.SetValue(currentStamina, maxStamina);
     }
@@ -82,12 +79,11 @@ public class PlayerStats : MonoBehaviour
     // -------------------- Vie --------------------
     public void TakeDamage(float amount)
     {
-        if (amount <= 0f) return;
+        if (amount <= 0f || isDead) return;
 
         currentHealth = Mathf.Max(currentHealth - amount, 0f);
         UpdateUI();
 
-        // Jouer le son de dégâts
         if (damageClip != null && audioSource != null)
             audioSource.PlayOneShot(damageClip);
 
@@ -97,7 +93,7 @@ public class PlayerStats : MonoBehaviour
 
     public void Heal(float amount)
     {
-        if (amount <= 0f) return;
+        if (amount <= 0f || isDead) return;
 
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
         UpdateUI();
@@ -114,9 +110,18 @@ public class PlayerStats : MonoBehaviour
     }
 
     // -------------------- Mort --------------------
-    private void Die()
+   private void Die()
     {
-        Debug.Log("Le joueur est mort");
-        // TODO : animation, désactivation des contrôles, respawn...
+        Debug.Log("💀 Le joueur est mort");
+
+        if (gameOverMenu != null)
+        {
+            gameOverMenu.ShowGameOver();  // ✅ appelle ton menu
+        }
+        else
+        {
+            Debug.LogError("❌ GameOverMenu non assigné dans PlayerStats");
+        }
     }
+
 }

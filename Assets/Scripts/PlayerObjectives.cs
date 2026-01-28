@@ -4,14 +4,18 @@ public class PlayerObjectives : MonoBehaviour
 {
     public bool hasKey;
     public bool hasHammer;
-    public bool codeOk;
 
-    public bool CanExit => hasKey && hasHammer && codeOk;
+    public bool CanOpenExitDoor() => hasKey && hasHammer;
 
-    public void SetCodeOkTrue()
+    public void CollectKey()
     {
-        codeOk = true;
-        Debug.Log(" codeOk = true (SetCodeOkTrue)");
+        hasKey = true;
+        Debug.Log("🔑 Clé récupérée !");
     }
 
+    public void CollectHammer()
+    {
+        hasHammer = true;
+        Debug.Log("🔨 Marteau récupéré !");
+    }
 }

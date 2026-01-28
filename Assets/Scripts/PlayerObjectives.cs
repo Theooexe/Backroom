@@ -11,7 +11,7 @@ public class PlayerObjectives : MonoBehaviour
     public void SetCodeOkTrue()
     {
         codeOk = true;
-        Debug.Log("✅ codeOk = true (SetCodeOkTrue)");
+        Debug.Log(" codeOk = true (SetCodeOkTrue)");
     }
 
 }

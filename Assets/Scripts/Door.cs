@@ -68,6 +68,13 @@ public class Door : MonoBehaviour, IInteractable
                 audioSource.PlayOneShot(closeSound);
         }
     }
+    
+    public void RemoveHammerRequirement()
+    {
+        requireHammer = false;
+        Debug.Log("🔓 Door: requirement marteau supprimé");
+    }
+
 
 
     void Update()

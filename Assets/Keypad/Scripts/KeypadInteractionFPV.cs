@@ -1,28 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-namespace NavKeypad { 
-public class KeypadInteractionFPV : MonoBehaviour
+public class KeypadInteractionFPV : MonoBehaviour, IInteractable
 {
-    private Camera cam;
-    private void Awake() => cam = Camera.main;
-    private void Update()
+    [SerializeField] private Canvas keypadCanvas;
+    public void Interact()
     {
-        if (cam == null) return;
-
-        Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (Physics.Raycast(ray, out RaycastHit hit, 2.0f))
-            {
-                var button = hit.collider.GetComponent<KeypadButton>();
-                if (button != null)
-                    button.PressButton();
-            }
-        }
+    
+        if (keypadCanvas != null)
+            keypadCanvas.gameObject.SetActive(true);
+        Time.timeScale = 0f;
     }
 
-}
+    public void CloseKeypad()
+    {
+        if (keypadCanvas != null)
+            keypadCanvas.gameObject.SetActive(false);
+        Time.timeScale = 1f;
+    }
 }

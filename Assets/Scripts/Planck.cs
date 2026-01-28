@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Plank : MonoBehaviour, IInteractable
 {
-    [SerializeField] private Door linkedDoor;
     [SerializeField] private AudioClip breakSound;
 
     private AudioSource audioSource;
@@ -16,28 +15,28 @@ public class Plank : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        PlayerObjectives objectives = FindFirstObjectByType<PlayerObjectives>();
+        InventoryManager inventory = InventoryManager.Instance;
 
-        if (objectives == null)
+        if (inventory == null)
         {
-            Debug.LogWarning("⚠️ PlayerObjectives introuvable");
+            Debug.LogWarning("⚠️ InventoryManager introuvable");
             return;
         }
 
-        if (!objectives.hasHammer)
+        if (!inventory.HasHammer)
         {
             Debug.Log("🛑 Il faut un marteau pour casser la planche");
             return;
         }
-        
-        if (linkedDoor != null)
-        {
-            linkedDoor.RemoveHammerRequirement();
-        }
-        
+
+        // 🔨 Consommer le marteau
+        inventory.RemoveHammer();
+
+        // 🔊 Son
         if (breakSound != null)
             audioSource.PlayOneShot(breakSound);
-        
+
+        // 🪵 Détruire la planche
         Destroy(gameObject, 0.05f);
     }
 }

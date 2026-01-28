@@ -176,6 +176,7 @@ GameObject:
   - component: {fileID: 5346292362960059838}
   - component: {fileID: 8639922247806928451}
   - component: {fileID: 6284573029858213194}
+  - component: {fileID: 5206860329475139903}
   m_Layer: 5
   m_Name: HUD
   m_TagString: Untagged
@@ -268,6 +269,19 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &5206860329475139903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2365204531296669426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9537aaddb2a6ff4cba8cc4efb97c800, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CursorController
+  cursorImage: {fileID: 0}
 --- !u!1 &2384087813206453251
 GameObject:
   m_ObjectHideFlags: 0

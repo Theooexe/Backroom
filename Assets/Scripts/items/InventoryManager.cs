@@ -8,43 +8,57 @@ public class InventoryManager : MonoBehaviour
     public ItemSlot cleSlot;
     public ItemSlot marteauSlot;
 
+    public bool HasKey { get; private set; }
+    public bool HasHammer { get; private set; }
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
 
-   private void Start()
+    private void Start()
     {
         if (cleSlot != null) cleSlot.Hide();
         if (marteauSlot != null) marteauSlot.Hide();
-    }
 
+        HasKey = false;
+        HasHammer = false;
+    }
 
     public void AddItem(Item item)
     {
-        if (item == null)
-        {
-            return;
-        }
-
-        if (item.icon == null)
-        {
-            return;
-        }
+        if (item == null || item.icon == null) return;
 
         switch (item.type)
         {
             case ItemType.Cle:
-                if (cleSlot != null) cleSlot.SetItem(item.icon);
+                HasKey = true;
+                if (cleSlot != null)
+                    cleSlot.SetItem(item.icon);
                 break;
 
             case ItemType.Marteau:
-                if (marteauSlot != null) marteauSlot.SetItem(item.icon);
-                break;
-
-            default:
+                HasHammer = true;
+                if (marteauSlot != null)
+                    marteauSlot.SetItem(item.icon);
                 break;
         }
+    }
+
+    public void RemoveHammer()
+    {
+        HasHammer = false;
+
+        if (marteauSlot != null)
+            marteauSlot.Hide();
+    }
+
+    public void RemoveKey()
+    {
+        HasKey = false;
+
+        if (cleSlot != null)
+            cleSlot.Hide();
     }
 }

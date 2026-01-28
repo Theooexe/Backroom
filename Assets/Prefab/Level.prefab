@@ -5205,6 +5205,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
+    - target: {fileID: 2162375681252980807, guid: 982670fabb183a34196536ae65e33228, type: 3}
+      propertyPath: m_UseGravity
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2162375681252980807, guid: 982670fabb183a34196536ae65e33228, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4813008359745957857, guid: 982670fabb183a34196536ae65e33228, type: 3}
       propertyPath: m_Name
       value: Plank4
@@ -5212,13 +5220,34 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4813008359745957857, guid: 982670fabb183a34196536ae65e33228, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3918338966780656931}
   m_SourcePrefab: {fileID: 100100000, guid: 982670fabb183a34196536ae65e33228, type: 3}
 --- !u!4 &2890841665055548777 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 603772705469747262, guid: 982670fabb183a34196536ae65e33228, type: 3}
   m_PrefabInstance: {fileID: 2341692852948514135}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7112415971141589686 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4813008359745957857, guid: 982670fabb183a34196536ae65e33228, type: 3}
+  m_PrefabInstance: {fileID: 2341692852948514135}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3918338966780656931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7112415971141589686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feb09a7a36cae48c7bdbe9134cab3019, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Plank
+  breakSound: {fileID: 8300000, guid: 61b362ed1994d47749dc2e0d2c3821a2, type: 3}
 --- !u!1001 &2379160805892194543
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8964,6 +8993,10 @@ PrefabInstance:
       value: 0.361
       objectReference: {fileID: 0}
     - target: {fileID: 7953675324119147765, guid: 16d3b976106d561488ee6fef0113cc77, type: 3}
+      propertyPath: m_Name
+      value: exit
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953675324119147765, guid: 16d3b976106d561488ee6fef0113cc77, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 1
       objectReference: {fileID: 0}
@@ -9000,7 +9033,6 @@ MonoBehaviour:
   isExitDoor: 1
   playerObjectives: {fileID: 0}
   requireKey: 1
-  requireHammer: 1
   requireCode: 1
   openSound: {fileID: 0}
   closeSound: {fileID: 0}

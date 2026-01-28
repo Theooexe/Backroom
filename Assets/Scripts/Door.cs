@@ -2,22 +2,22 @@ using UnityEngine;
 
 public class Door : MonoBehaviour, IInteractable
 {
-
     [Header("Exit Door Lock (optional)")]
     public bool isExitDoor = false;
     public PlayerObjectives playerObjectives;
+
     public bool requireKey = true;
-    public bool requireHammer = true;
     public bool requireCode = true;
 
-    public AudioClip openSound;   // Son ouverture
-    public AudioClip closeSound;  // Son fermeture
-    public float openAngle = 90f; // Angle d'ouverture
-    public float smooth = 2f;     // Vitesse d'ouverture
+    [Header("Door Settings")]
+    public AudioClip openSound;
+    public AudioClip closeSound;
+    public float openAngle = 90f;
+    public float smooth = 2f;
 
-    private bool isOpen = false;  
-    private Quaternion closedRotation; 
-    private Quaternion openRotation;   
+    private bool isOpen = false;
+    private Quaternion closedRotation;
+    private Quaternion openRotation;
     private AudioSource audioSource;
 
     void Start()
@@ -35,7 +35,7 @@ public class Door : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        // Si c'est la porte de sortie, on vérifie les conditions
+        // 🔒 Vérification porte de sortie
         if (isExitDoor)
         {
             if (playerObjectives == null)
@@ -46,18 +46,17 @@ public class Door : MonoBehaviour, IInteractable
 
             bool ok =
                 (!requireKey || playerObjectives.hasKey) &&
-                (!requireHammer || playerObjectives.hasHammer) &&
                 (!requireCode || playerObjectives.codeOk);
 
             if (!ok)
             {
-                Debug.Log("🔒 Porte verrouillée: il manque un/des élément(s)");
-                Debug.Log($"🔒 Etat objectifs: key={playerObjectives.hasKey} hammer={playerObjectives.hasHammer} code={playerObjectives.codeOk}");
-                return; // on n'ouvre pas
+                Debug.Log("🔒 Porte verrouillée");
+                Debug.Log($"🔒 Etat: key={playerObjectives.hasKey} code={playerObjectives.codeOk}");
+                return;
             }
         }
 
-        // Sinon fonctionnement normal
+        // 🚪 Ouvrir / fermer
         isOpen = !isOpen;
 
         if (audioSource != null)
@@ -68,13 +67,12 @@ public class Door : MonoBehaviour, IInteractable
                 audioSource.PlayOneShot(closeSound);
         }
     }
-    
-    public void RemoveHammerRequirement()
-    {
-        requireHammer = false;
-        Debug.Log("🔓 Door: requirement marteau supprimé");
-    }
 
+    public void UnlockByCode()
+    {
+        requireCode = false;
+        Debug.Log("🔓 Door: code validé");
+    }
 
 
     void Update()

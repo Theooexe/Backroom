@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: ddd70f8bf4cdb41e493f20e98f3eb10a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6.3
+      value: -2.376
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ddd70f8bf4cdb41e493f20e98f3eb10a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.3
+      value: 4.48
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ddd70f8bf4cdb41e493f20e98f3eb10a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -37.48
+      value: -11.85
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ddd70f8bf4cdb41e493f20e98f3eb10a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -162,6 +162,10 @@ MonoBehaviour:
   movementThreshold: 0.01
   chaseAudioSource: {fileID: 8453610429204185898}
   chaseClip: {fileID: 0}
+  footstepAudioSource: {fileID: 0}
+  footstepClip: {fileID: 0}
+  footstepVolume: 0.5
+  footstepInterval: 0.5
   fadeOutSpeed: 1
 --- !u!82 &8453610429204185898
 AudioSource:
@@ -176,7 +180,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 3f6c55f8837b09847b53ffc3d1fffe78, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.1
   m_Pitch: 1
   Loop: 1
   Mute: 0

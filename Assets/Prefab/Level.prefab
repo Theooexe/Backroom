@@ -622,9 +622,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 5ca5ab7bafafb104a81b4e4385293dd0, type: 3}
+  m_Resource: {fileID: 8300000, guid: 2f46e019bfe74694f8f4e3b36c3d71f0, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.1
+  m_Volume: 1
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -4447,6 +4447,14 @@ PrefabInstance:
       propertyPath: closeSound
       value: 
       objectReference: {fileID: 8300000, guid: 3c1c01df66c1c1445972a61ae04a46b1, type: 3}
+    - target: {fileID: 2603459916575196876, guid: c5a6f02f92ff646449a8aa71a541367b, type: 3}
+      propertyPath: openVolume
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2603459916575196876, guid: c5a6f02f92ff646449a8aa71a541367b, type: 3}
+      propertyPath: closeVolume
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 2710297983598368541, guid: c5a6f02f92ff646449a8aa71a541367b, type: 3}
       propertyPath: m_Name
       value: Wall_DoorSnapper
@@ -9235,6 +9243,8 @@ MonoBehaviour:
   blockingBoard: {fileID: 0}
   openSound: {fileID: 8300000, guid: e0c5ab5c250885a4c89ec38ea6648dff, type: 3}
   closeSound: {fileID: 8300000, guid: 3c1c01df66c1c1445972a61ae04a46b1, type: 3}
+  openVolume: 0.1
+  closeVolume: 0.1
   openAngle: 90
   smooth: 2
   messageText: {fileID: 0}
@@ -10981,6 +10991,14 @@ PrefabInstance:
       propertyPath: closeSound
       value: 
       objectReference: {fileID: 8300000, guid: 3c1c01df66c1c1445972a61ae04a46b1, type: 3}
+    - target: {fileID: 2603459916575196876, guid: c5a6f02f92ff646449a8aa71a541367b, type: 3}
+      propertyPath: openVolume
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2603459916575196876, guid: c5a6f02f92ff646449a8aa71a541367b, type: 3}
+      propertyPath: closeVolume
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 2710297983598368541, guid: c5a6f02f92ff646449a8aa71a541367b, type: 3}
       propertyPath: m_Name
       value: Door

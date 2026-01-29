@@ -44,6 +44,14 @@ public class MonsterPatrol : MonoBehaviour
     [SerializeField] private AudioSource chaseAudioSource;
     [SerializeField] private AudioClip chaseClip;
 
+    [Header("Footstep Audio")]
+    [SerializeField] private AudioSource footstepAudioSource;
+    [SerializeField] private AudioClip footstepClip;
+    [SerializeField] private float footstepVolume = 0.5f;
+    [SerializeField] private float footstepInterval = 0.5f; // intervalle entre deux sons de pas
+    private float footstepTimer = 0f;
+
+
     [SerializeField] private float fadeOutSpeed = 1f; // volume par seconde
     private bool isFadingOut = false;
 
@@ -259,5 +267,27 @@ public class MonsterPatrol : MonoBehaviour
 
         animator.SetBool(IsRunningParam, isRunning);
         animator.SetBool(IsWalkingParam, isWalking);
+
+        // --- Gestion du son des pas ---
+        if (footstepAudioSource != null && footstepClip != null)
+        {
+            if (speed > movementThreshold) // le monstre se déplace
+            {
+                footstepTimer += Time.deltaTime;
+                float interval = footstepInterval;
+                if (isRunning) interval /= 1.5f; // pas plus rapides quand il court
+
+                if (footstepTimer >= interval)
+                {
+                    footstepAudioSource.PlayOneShot(footstepClip, footstepVolume);
+                    footstepTimer = 0f;
+                }
+            }
+            else
+            {
+                footstepTimer = footstepInterval; // reset timer si immobile
+            }
+        }
     }
+
 }

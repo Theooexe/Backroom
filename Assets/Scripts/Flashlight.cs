@@ -3,7 +3,9 @@ using UnityEngine;
 public class Flashlight : MonoBehaviour
 {
     public Light flashlightLight;
-    private bool isOn = true; 
+    private bool isOn = true;
+    public bool IsOn => isOn;
+
     void Start()
     {
         if (flashlightLight != null)

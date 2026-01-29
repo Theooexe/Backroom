@@ -9,6 +9,12 @@ public class PlayerPickup : MonoBehaviour
     public Camera playerCamera;
     public Transform flashlightHoldPoint; // position où la lampe sera attachée
 
+    [Header("Audio")]
+    public AudioClip pickupSound;        // Son pour tout item récupéré
+    public AudioClip flashlightOnSound;  // Son pour allumer la lampe
+    public AudioClip flashlightOffSound; // Son pour éteindre la lampe
+    private AudioSource audioSource;
+
     private Flashlight playerFlashlight; // lampe récupérée
     private PlayerObjectives playerObjectives;
 
@@ -17,6 +23,10 @@ public class PlayerPickup : MonoBehaviour
         playerObjectives = GetComponent<PlayerObjectives>();
         if (playerObjectives == null)
             Debug.LogWarning("⚠️ PlayerObjectives non trouvé sur le joueur !");
+
+        // Initialiser l'AudioSource
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
     }
 
     void Update()
@@ -30,6 +40,21 @@ public class PlayerPickup : MonoBehaviour
         if (playerFlashlight != null && Input.GetKeyDown(KeyCode.F))
         {
             playerFlashlight.ToggleFlashlight();
+
+            // Jouer le son correspondant
+            if (audioSource != null)
+            {
+                if (playerFlashlight.IsOn)
+                {
+                    if (flashlightOnSound != null)
+                        audioSource.PlayOneShot(flashlightOnSound);
+                }
+                else
+                {
+                    if (flashlightOffSound != null)
+                        audioSource.PlayOneShot(flashlightOffSound);
+                }
+            }
         }
     }
 
@@ -49,11 +74,14 @@ public class PlayerPickup : MonoBehaviour
 
             if (item != null && item.canBePickedUp)
             {
+                // Jouer le son de récupération
+                if (pickupSound != null && audioSource != null)
+                    audioSource.PlayOneShot(pickupSound);
+
                 // 🔹 Si c'est une lampe
                 Flashlight flashlight = item.GetComponent<Flashlight>();
                 if (flashlight != null)
                 {
-                    // Attacher la lampe au joueur
                     flashlight.transform.SetParent(flashlightHoldPoint);
                     flashlight.transform.localPosition = Vector3.zero;
                     flashlight.transform.localRotation = Quaternion.identity;

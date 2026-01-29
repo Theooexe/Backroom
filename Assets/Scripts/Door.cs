@@ -13,6 +13,8 @@ public class Door : MonoBehaviour, IInteractable
     [Header("Door Settings")]
     public AudioClip openSound;
     public AudioClip closeSound;
+    [Range(0f, 1f)] public float openVolume = 1f;   // Volume pour ouverture
+    [Range(0f, 1f)] public float closeVolume = 1f;  // Volume pour fermeture
     public float openAngle = 90f;
     public float smooth = 2f;
 
@@ -83,9 +85,9 @@ public class Door : MonoBehaviour, IInteractable
         if (audioSource != null)
         {
             if (isOpen && openSound != null)
-                audioSource.PlayOneShot(openSound);
+                audioSource.PlayOneShot(openSound, openVolume);   // 🎵 Volume dosé
             else if (!isOpen && closeSound != null)
-                audioSource.PlayOneShot(closeSound);
+                audioSource.PlayOneShot(closeSound, closeVolume); // 🎵 Volume dosé
         }
     }
 

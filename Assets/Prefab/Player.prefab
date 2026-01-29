@@ -24,12 +24,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1965046323386680669}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0.301, y: 1.424, z: 0.271}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.30099875, y: -0.27600002, z: 0.27099988}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2070221021787930892}
+  m_Father: {fileID: 1073864753492134118}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &7162566429522661987
 GameObject:
@@ -62,7 +62,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 1.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5182521459548187789}
   m_Father: {fileID: 2070221021787930892}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &1686074638564355702
@@ -502,9 +503,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1073864753492134118}
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5182521459548187789}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 447c88d5f1f744edc97143a9a9265aa5, type: 3}
       insertIndex: -1
@@ -756,8 +754,8 @@ MonoBehaviour:
   healthBar: {fileID: 0}
   staminaBar: {fileID: 0}
   gameOverMenu: {fileID: 0}
-  staminaConsumptionRate: 6
-  staminaRecoveryRate: 20
+  staminaConsumptionRate: 15
+  staminaRecoveryRate: 10
   damageClip: {fileID: 8300000, guid: 9389b7e20a7da4ff9ad0684202f0effd, type: 3}
 --- !u!114 &3609540873761623147
 MonoBehaviour:
@@ -777,6 +775,8 @@ MonoBehaviour:
     m_Bits: 8
   playerCamera: {fileID: 1686074638564355702}
   flashlightHoldPoint: {fileID: 5182521459548187789}
+  flashlightPositionOffset: {x: 0, y: -0.1, z: 0.3}
+  flashlightRotationOffset: {x: 0, y: 0, z: 0}
   pickupSound: {fileID: 8300000, guid: 2d83127696c1cf9449f15a8c0330c101, type: 3}
   flashlightOnSound: {fileID: 8300000, guid: 6986cdb2765669143985922f0f1b98b3, type: 3}
   flashlightOffSound: {fileID: 8300000, guid: 6986cdb2765669143985922f0f1b98b3, type: 3}

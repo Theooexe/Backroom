@@ -1,18 +1,22 @@
 using UnityEngine;
 using System.Linq;
 
-public class PlayerPickup : MonoBehaviour
+public class PlayerPickup_Complet : MonoBehaviour
 {
     [Header("Pickup Settings")]
     public float pickupRange = 3f;
     public LayerMask itemLayer;
     public Camera playerCamera;
-    public Transform flashlightHoldPoint; // position où la lampe sera attachée
+    public Transform flashlightHoldPoint; // FlashlightHolder sur la caméra
+
+    [Header("Flashlight Offsets")]
+    public Vector3 flashlightPositionOffset = new Vector3(0, -0.1f, 0.3f);
+    public Vector3 flashlightRotationOffset = Vector3.zero;
 
     [Header("Audio")]
-    public AudioClip pickupSound;        // Son pour tout item récupéré
-    public AudioClip flashlightOnSound;  // Son pour allumer la lampe
-    public AudioClip flashlightOffSound; // Son pour éteindre la lampe
+    public AudioClip pickupSound;
+    public AudioClip flashlightOnSound;
+    public AudioClip flashlightOffSound;
     private AudioSource audioSource;
 
     private Flashlight playerFlashlight; // lampe récupérée
@@ -27,21 +31,26 @@ public class PlayerPickup : MonoBehaviour
         // Initialiser l'AudioSource
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
+
+        if (playerCamera == null)
+            Debug.LogWarning("⚠️ PlayerCamera non assignée !");
+        if (flashlightHoldPoint == null)
+            Debug.LogWarning("⚠️ FlashlightHoldPoint non assigné !");
     }
 
     void Update()
     {
+        // 🔹 Pickup items avec E
         if (Input.GetKeyDown(KeyCode.E))
         {
             TryPickupItem();
         }
 
-        // Allumer/éteindre la lampe si le joueur a récupéré une Flashlight
+        // 🔹 Allumer/éteindre la lampe avec F
         if (playerFlashlight != null && Input.GetKeyDown(KeyCode.F))
         {
             playerFlashlight.ToggleFlashlight();
 
-            // Jouer le son correspondant
             if (audioSource != null)
             {
                 if (playerFlashlight.IsOn)
@@ -65,7 +74,7 @@ public class PlayerPickup : MonoBehaviour
         Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         Debug.DrawRay(ray.origin, ray.direction * pickupRange, Color.red, 1f);
 
-        RaycastHit[] hits = Physics.SphereCastAll(ray, 0.6f, pickupRange);
+        RaycastHit[] hits = Physics.SphereCastAll(ray, 0.6f, pickupRange, itemLayer);
 
         foreach (var h in hits.OrderBy(h => h.distance))
         {
@@ -82,15 +91,24 @@ public class PlayerPickup : MonoBehaviour
                 Flashlight flashlight = item.GetComponent<Flashlight>();
                 if (flashlight != null)
                 {
+                    if (flashlightHoldPoint == null)
+                    {
+                        Debug.LogWarning("FlashlightHoldPoint non assigné !");
+                        return;
+                    }
+
                     flashlight.transform.SetParent(flashlightHoldPoint);
-                    flashlight.transform.localPosition = Vector3.zero;
-                    flashlight.transform.localRotation = Quaternion.identity;
+                    flashlight.transform.localPosition = flashlightPositionOffset;
+                    flashlight.transform.localRotation = Quaternion.Euler(flashlightRotationOffset);
 
                     playerFlashlight = flashlight;
 
                     // Désactiver le collider pour ne pas ramasser à nouveau
                     Collider col = flashlight.GetComponent<Collider>();
                     if (col != null) col.enabled = false;
+
+                    // Optionnel : allumer la lampe dès le pickup
+                    flashlight.ToggleFlashlight();
 
                     return;
                 }
@@ -99,7 +117,7 @@ public class PlayerPickup : MonoBehaviour
                     // 🔹 Ajouter à l'inventaire
                     InventoryManager.Instance.AddItem(item);
 
-                    // 🔹 Mettre à jour PlayerObjectives pour la porte
+                    // 🔹 Mettre à jour PlayerObjectives
                     if (playerObjectives != null)
                     {
                         switch (item.type)

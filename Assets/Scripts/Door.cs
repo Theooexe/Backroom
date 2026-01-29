@@ -1,15 +1,31 @@
 using UnityEngine;
+using TMPro;
 
 public class Door : MonoBehaviour, IInteractable
 {
-    public AudioClip openSound;   // Son ouverture
-    public AudioClip closeSound;  // Son fermeture
-    public float openAngle = 90f; // Angle d'ouverture
-    public float smooth = 2f;     // Vitesse d'ouverture
+    [Header("Door Settings")]
+    public bool isExitDoor = false;                  
+    public PlayerObjectives playerObjectives;        
 
-    private bool isOpen = false;  
-    private Quaternion closedRotation; 
-    private Quaternion openRotation;   
+    [Header("Blocking Object (optional)")]
+    public GameObject blockingBoard;                 
+
+    [Header("Door Settings")]
+    public AudioClip openSound;
+    public AudioClip closeSound;
+    [Range(0f, 1f)] public float openVolume = 1f;   // Volume pour ouverture
+    [Range(0f, 1f)] public float closeVolume = 1f;  // Volume pour fermeture
+    public float openAngle = 90f;
+    public float smooth = 2f;
+
+    [Header("UI Messages")]
+    public TMP_Text messageText;                     
+    public float messageDuration = 2f;              
+    private float messageTimer = 0f;
+
+    private bool isOpen = false;
+    private Quaternion closedRotation;
+    private Quaternion openRotation;
     private AudioSource audioSource;
 
     void Start()
@@ -20,27 +36,81 @@ public class Door : MonoBehaviour, IInteractable
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
-    }
 
-    public void Interact()
-    {
-        isOpen = !isOpen; // change l'�tat
-
-        // joue le son correspondant
-        if (audioSource != null)
-        {
-            if (isOpen && openSound != null)
-                audioSource.PlayOneShot(openSound);
-            else if (!isOpen && closeSound != null)
-                audioSource.PlayOneShot(closeSound);
-        }
+        if (isExitDoor && playerObjectives == null)
+            playerObjectives = FindFirstObjectByType<PlayerObjectives>();
     }
 
     void Update()
     {
-        if (isOpen)
-            transform.rotation = Quaternion.Slerp(transform.rotation, openRotation, Time.deltaTime * smooth);
+        // Animation ouverture / fermeture
+        transform.rotation = Quaternion.Slerp(transform.rotation,
+                                              isOpen ? openRotation : closedRotation,
+                                              Time.deltaTime * smooth);
+
+        // Timer pour message
+        if (messageText != null && messageText.gameObject.activeSelf)
+        {
+            messageTimer += Time.unscaledDeltaTime;
+            if (messageTimer >= messageDuration)
+            {
+                messageText.gameObject.SetActive(false);
+                messageTimer = 0f;
+            }
+        }
+    }
+
+    public void Interact()
+    {
+        if (isExitDoor)
+        {
+            if (playerObjectives == null)
+                return;
+
+            // Message uniquement si la clé manque
+            if (!playerObjectives.hasKey)
+            {
+                ShowMessage("Détruisez la planche et trouvez la clé");
+                return;
+            }
+
+            // Si planche encore là, la porte ne s'ouvre pas mais aucun message
+            if (blockingBoard != null)
+                return;
+        }
+
+        // Ouvrir / fermer la porte
+        isOpen = !isOpen;
+
+        if (audioSource != null)
+        {
+            if (isOpen && openSound != null)
+                audioSource.PlayOneShot(openSound, openVolume);   // 🎵 Volume dosé
+            else if (!isOpen && closeSound != null)
+                audioSource.PlayOneShot(closeSound, closeVolume); // 🎵 Volume dosé
+        }
+    }
+
+    public void RemoveBlockingBoard()
+    {
+        if (blockingBoard != null)
+        {
+            Destroy(blockingBoard);
+            blockingBoard = null;
+        }
+    }
+
+    private void ShowMessage(string text)
+    {
+        if (messageText != null)
+        {
+            messageText.text = text;
+            messageText.gameObject.SetActive(true);
+            messageTimer = 0f;
+        }
         else
-            transform.rotation = Quaternion.Slerp(transform.rotation, closedRotation, Time.deltaTime * smooth);
+        {
+            Debug.Log(text);
+        }
     }
 }

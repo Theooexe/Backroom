@@ -1,128 +1,293 @@
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections;
 
 public class MonsterPatrol : MonoBehaviour
 {
-    // --- Références ---
-    public Transform player;         // Ton joueur
-    public Transform[] waypoints;    // Points de patrouille
-    private NavMeshAgent agent;
+    public enum MonsterState { Patrol, Idle, Chase };
+    public MonsterState currentState = MonsterState.Patrol;
+
     private Animator animator;
+    private NavMeshAgent agent;
 
-    // --- Paramètres de déplacement ---
-    public float walkSpeed = 2f;
-    public float runSpeed = 6f;
+    [Header("Cibles et Détection")]
+    public Transform[] waypoints;
+    private int currentWaypointIndex = 0;
 
-    // --- Paramètres de détection ---
-    public float viewDistance =6f;
-    public float viewAngle = 60f;
-    public float detectionRadius = 3f; // Détection si le joueur est très proche
-    public float attackRange = 2f;     // Distance à laquelle il attaque
+    [SerializeField] private Transform playerTarget;
+    [SerializeField] private PlayerStats playerStats;
 
-    // --- États internes ---
-    private int currentWaypoint = 0;
-    private bool isWaiting = false;
-    private bool isAttacking = false;
-    private bool playerDetected = false;
+    [SerializeField] private float loseSightDelay = 3f;
+    private float loseSightTimer = 0f;
+    [SerializeField] private float viewAngle = 90f;
+    [SerializeField] private float visionRange = 15f;
+    [SerializeField] private float guaranteedDetectionRange = 3f;
+    [SerializeField] private float attackRange = 1.5f;
+    [SerializeField] private float damage = 10f;
+    [SerializeField] private float attackCooldown = 1f;
 
-    // --- Initialisation ---
+    private float lastAttackTime = 0f;
+
+    [Header("Timers et Vitesse")]
+    [SerializeField] private float idleDuration = 5f;
+    private float idleTimer;
+    [SerializeField] private float patrolSpeed = 1.5f;
+    [SerializeField] private float chaseSpeed = 1.5f;
+
+    [Header("Animation Settings")]
+    private const string IsWalkingParam = "isWalking";
+    private const string IsRunningParam = "isRunning";
+    private const string AttackTrigger = "Attack";
+    [SerializeField] private float movementThreshold = 0.01f;
+    private float runningThreshold = 1.5f;
+    
+    [Header("Audio")]
+    [SerializeField] private AudioSource chaseAudioSource;
+    [SerializeField] private AudioClip chaseClip;
+
+    [Header("Footstep Audio")]
+    [SerializeField] private AudioSource footstepAudioSource;
+    [SerializeField] private AudioClip footstepClip;
+    [SerializeField] private float footstepVolume = 0.5f;
+    [SerializeField] private float footstepInterval = 0.5f; // intervalle entre deux sons de pas
+    private float footstepTimer = 0f;
+
+
+    [SerializeField] private float fadeOutSpeed = 1f; // volume par seconde
+    private bool isFadingOut = false;
+
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
 
-        // TODO : initialiser le NavMeshAgent
-        // TODO : lancer la première destination de patrouille
+        if (animator == null || agent == null)
+        {
+            Debug.LogError("Composant(s) manquant(s): Animator ou NavMeshAgent.");
+            enabled = false;
+            return;
+        }
+
+        if (waypoints.Length > 0)
+        {
+            agent.speed = patrolSpeed;
+            GoToNextWaypoint();
+        }
     }
 
-    // --- Mise à jour à chaque frame ---
     void Update()
     {
-        // TODO : calculer la distance au joueur
+        CheckForPlayer();
 
-        // TODO : mettre à jour le paramètre Speed dans l'Animator
+        switch (currentState)
+        {
+            case MonsterState.Patrol:
+                HandlePatrol();
+                break;
+            case MonsterState.Idle:
+                HandleIdle();
+                break;
+            case MonsterState.Chase:
+                HandleChase();
+                break;
+        }
+        
+        if (isFadingOut && chaseAudioSource != null)
+        {
+            chaseAudioSource.volume -= fadeOutSpeed * Time.deltaTime;
+            if (chaseAudioSource.volume <= 0f)
+            {
+                chaseAudioSource.Stop();
+                chaseAudioSource.volume = 1f;
+                isFadingOut = false;
+            }
+        }
 
-        // TODO : détection du joueur (vue ou proximité)
 
-        // TODO : choisir l'état : Patrouille ou Poursuite/Attaque
+        HandleAnimationStates();
     }
 
-    // --- Méthodes de patrouille ---
-    void Patrouiller()
+    private bool CanSeePlayer()
     {
-        // TODO : faire avancer vers le waypoint
-        // TODO : gérer l'attente au waypoint
+        if (playerTarget == null) return false;
+
+        Vector3 dir = playerTarget.position - transform.position;
+        float distance = dir.magnitude;
+        Vector3 dirNorm = dir.normalized;
+
+        if (distance > visionRange && distance > guaranteedDetectionRange) return false;
+
+        if (distance > guaranteedDetectionRange)
+        {
+            float dot = Vector3.Dot(transform.forward, dirNorm);
+            if (dot < Mathf.Cos(viewAngle * 0.5f * Mathf.Deg2Rad)) return false;
+        }
+
+        RaycastHit hit;
+        Vector3 eyePosition = transform.position + Vector3.up * 1.5f;
+        if (Physics.Raycast(eyePosition, dirNorm, out hit, visionRange))
+        {
+            if (hit.transform != playerTarget) return false;
+        }
+
+        return true;
     }
 
-    IEnumerator WaitAndGoNext()
+    private void CheckForPlayer()
     {
-        // TODO : arrêter l'agent, attendre, passer au waypoint suivant
-        yield return null;
+        if (playerTarget == null || currentState == MonsterState.Chase) return;
+
+        if (CanSeePlayer())
+        {
+            if (currentState != MonsterState.Chase)
+            {
+                currentState = MonsterState.Chase;
+                agent.isStopped = false;
+                agent.speed = chaseSpeed;
+                if (chaseAudioSource != null && !chaseAudioSource.isPlaying)
+                    chaseAudioSource.Play();
+            }
+        }
+
     }
 
-    // --- Méthodes de poursuite et attaque ---
-    void ChasserOuAttaquer(float distanceToPlayer)
+    private void HandlePatrol()
     {
-        // TODO : si trop loin → courir vers le joueur
-        // TODO : si assez proche → lancer l'attaque
+        if (agent.speed != patrolSpeed) agent.speed = patrolSpeed;
+
+        if (agent.remainingDistance <= agent.stoppingDistance + 0.1f && !agent.pathPending)
+        {
+            currentState = MonsterState.Idle;
+            idleTimer = idleDuration;
+            agent.isStopped = true;
+        }
     }
 
-    IEnumerator AttackRoutine()
+    private void HandleIdle()
     {
-        // TODO : arrêter l'agent, lancer l'animation d'attaque, attendre cooldown
-        yield return null;
+        idleTimer -= Time.deltaTime;
+        if (idleTimer <= 0)
+        {
+            currentState = MonsterState.Patrol;
+            IncrementWaypointIndex();
+            GoToNextWaypoint();
+            agent.isStopped = false;
+        }
     }
 
-    // --- Détection du joueur ---
-    bool PeutVoirLeJoueur(float distanceToPlayer)
+    private void HandleChase()
     {
-        // TODO : vérifier l'angle de vision et les obstacles
-        return false;
+        if (playerTarget == null) return;
+
+        if (CanSeePlayer()) loseSightTimer = 0f;
+        else
+        {
+            loseSightTimer += Time.deltaTime;
+            if (loseSightTimer >= loseSightDelay)
+            {
+                currentState = MonsterState.Patrol;
+                agent.speed = patrolSpeed;
+                GoToNextWaypoint();
+                agent.isStopped = false;
+                loseSightTimer = 0f;
+                if (chaseAudioSource != null && chaseAudioSource.isPlaying)
+                    isFadingOut = true;
+                return;
+            }
+        }
+
+        if (agent.speed != chaseSpeed) agent.speed = chaseSpeed;
+
+        float distance = Vector3.Distance(transform.position, playerTarget.position);
+
+        if (distance <= attackRange)
+        {
+            agent.isStopped = true;
+            if (Time.time - lastAttackTime >= attackCooldown)
+            {
+                AttackPlayer();
+                lastAttackTime = Time.time;
+                animator.SetTrigger(AttackTrigger);
+            }
+        }
+        else
+        {
+            agent.isStopped = false;
+            agent.SetDestination(playerTarget.position);
+        }
     }
 
-    // --- Retour à la patrouille ---
-    void RetourPatrouille()
+    void OnDrawGizmos()
     {
-        // TODO : remettre le monstre sur son chemin de patrouille
+        Vector3 position = transform.position + Vector3.up * 1.5f;
+        Vector3 forward = transform.forward;
+
+        Gizmos.color = new Color(1f, 0f, 0f, 0.25f);
+
+        int segments = 20;
+        float halfAngle = viewAngle * 0.5f;
+
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = -halfAngle + (viewAngle / segments) * i;
+            Vector3 dir = Quaternion.Euler(0, angle, 0) * forward * visionRange;
+            RaycastHit hit;
+            if (!Physics.Raycast(position, dir.normalized, out hit, visionRange))
+                Gizmos.DrawLine(position, position + dir);
+            else
+                Gizmos.DrawLine(position, hit.point);
+        }
+
+        Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
+        Gizmos.DrawWireSphere(transform.position, guaranteedDetectionRange);
     }
 
-    // --- Optionnel : debug du cône de vision ---
-    void OnDrawGizmosSelected()
+    private void AttackPlayer()
     {
-    if (!Application.isPlaying) return;
-
-    // Position et orientation du monstre
-    Vector3 origin = transform.position + Vector3.up; // légèrement au-dessus du sol
-
-    // Couleur du cône
-    Gizmos.color = Color.red;
-
-    // Rayon de vision
-    float radius = viewDistance;
-
-    // Angle du cône (demi-angle)
-    float halfAngle = viewAngle / 2f;
-
-    // Directions gauche et droite
-    Vector3 leftDir = Quaternion.Euler(0, -halfAngle, 0) * transform.forward;
-    Vector3 rightDir = Quaternion.Euler(0, halfAngle, 0) * transform.forward;
-
-    // Ligne centrale (optionnelle)
-    Gizmos.DrawLine(origin, origin + transform.forward * radius);
-
-    // Côtés du cône
-    Gizmos.DrawLine(origin, origin + leftDir * radius);
-    Gizmos.DrawLine(origin, origin + rightDir * radius);
-
-    // Pour visualiser le cône “rempli”, on peut tracer plusieurs lignes intermédiaires
-    int segments = 10;
-    for (int i = 1; i < segments; i++)
-    {
-        float angle = -halfAngle + (viewAngle / segments) * i;
-        Vector3 dir = Quaternion.Euler(0, angle, 0) * transform.forward;
-        Gizmos.DrawLine(origin, origin + dir * radius);
+        if (playerStats != null) playerStats.TakeDamage(damage);
     }
+
+    private void IncrementWaypointIndex()
+    {
+        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
+    }
+
+    private void GoToNextWaypoint()
+    {
+        if (waypoints.Length > 0 && waypoints[currentWaypointIndex] != null)
+            agent.SetDestination(waypoints[currentWaypointIndex].position);
+    }
+
+    private void HandleAnimationStates()
+    {
+        Vector3 horVel = new Vector3(agent.velocity.x, 0, agent.velocity.z);
+        float speed = horVel.magnitude;
+
+        bool isWalking = speed > movementThreshold && speed < runningThreshold;
+        bool isRunning = speed >= runningThreshold;
+
+        animator.SetBool(IsRunningParam, isRunning);
+        animator.SetBool(IsWalkingParam, isWalking);
+
+        // --- Gestion du son des pas ---
+        if (footstepAudioSource != null && footstepClip != null)
+        {
+            if (speed > movementThreshold) // le monstre se déplace
+            {
+                footstepTimer += Time.deltaTime;
+                float interval = footstepInterval;
+                if (isRunning) interval /= 1.5f; // pas plus rapides quand il court
+
+                if (footstepTimer >= interval)
+                {
+                    footstepAudioSource.PlayOneShot(footstepClip, footstepVolume);
+                    footstepTimer = 0f;
+                }
+            }
+            else
+            {
+                footstepTimer = footstepInterval; // reset timer si immobile
+            }
+        }
     }
 
 }

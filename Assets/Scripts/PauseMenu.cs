@@ -1,26 +1,32 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;   // pour LoadScene
+using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
     [Header("UI")]
-    public GameObject pausePanel;              // Panel avec l'image + boutons
+    public GameObject pausePanel;
+    public GameObject parameterPanel;
+    public GameObject HUD;
+
+    [Header("Player Rotation")]
+    public PlayerMove playerMove;
 
     [Header("Config")]
-    public KeyCode pauseKey = KeyCode.Escape;  // touche pour ouvrir/fermer
+    public KeyCode pauseKey = KeyCode.Escape;
     public string mainMenuSceneName = "MainScene";
-
     [HideInInspector] public bool allowPause = true;
 
     [Header("Gameplay")]
-    public MonoBehaviour[] scriptsToDisableOnPause; // scripts de contrôle à couper
+    public MonoBehaviour[] scriptsToDisableOnPause;
+
+    [Header("Audio")]
+    public AudioSource[] audioSourcesToPause;
 
     public bool IsPaused { get; private set; }
 
     void Update()
     {
         if (!allowPause) return;
-
 
         if (Input.GetKeyDown(pauseKey))
         {
@@ -36,16 +42,21 @@ public class PauseMenu : MonoBehaviour
         IsPaused = true;
         Time.timeScale = 0f;
 
-        if (pausePanel != null)
-            pausePanel.SetActive(true);
+        pausePanel.SetActive(true);
+        if (parameterPanel != null) parameterPanel.SetActive(false);
+        if (HUD != null) HUD.SetActive(false);
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
         foreach (var s in scriptsToDisableOnPause)
-        {
             if (s != null) s.enabled = false;
-        }
+
+        foreach (var a in audioSourcesToPause)
+            if (a != null) a.Pause();
+
+        if (playerMove != null)
+            playerMove.canLook = false;
     }
 
     public void Resume()
@@ -53,16 +64,35 @@ public class PauseMenu : MonoBehaviour
         IsPaused = false;
         Time.timeScale = 1f;
 
-        if (pausePanel != null)
-            pausePanel.SetActive(false);
+        pausePanel.SetActive(false);
+        if (parameterPanel != null) parameterPanel.SetActive(false);
+        if (HUD != null) HUD.SetActive(true);
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
         foreach (var s in scriptsToDisableOnPause)
-        {
             if (s != null) s.enabled = true;
-        }
+
+        foreach (var a in audioSourcesToPause)
+            if (a != null) a.UnPause();
+
+        if (playerMove != null)
+            playerMove.canLook = true;
+    }
+
+    // ⚙️ OUVRIR PARAMÈTRES
+    public void OpenParameters()
+    {
+        pausePanel.SetActive(false);
+        parameterPanel.SetActive(true);
+    }
+
+    // 🔙 RETOUR AU MENU PAUSE
+    public void CloseParameters()
+    {
+        parameterPanel.SetActive(false);
+        pausePanel.SetActive(true);
     }
 
     public void QuitToMainMenu()
@@ -71,4 +101,3 @@ public class PauseMenu : MonoBehaviour
         SceneManager.LoadScene(mainMenuSceneName);
     }
 }
-        

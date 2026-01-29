@@ -22,19 +22,19 @@ public class PlayerMove : MonoBehaviour
     public float walkStepInterval = 0.5f;
     public float runStepInterval = 0.3f;
 
-    [HideInInspector] public bool canLook = true; // rotation caméra activée ou non
+    [HideInInspector] public bool canLook = true;
 
     private Vector3 moveDirection = Vector3.zero;
     private float rotationX = 0f;
     private CharacterController characterController;
     private float stepTimer = 0f;
 
-    // 🔥 Endurance
-    [HideInInspector] public bool IsTryingToRun = false; // appuie sur shift
-    [HideInInspector] public bool IsRunning = false;    // sprint réel
+    // Endurance
+    [HideInInspector] public bool IsTryingToRun = false;
+    [HideInInspector] public bool IsRunning = false;
     private bool forceStopRunning = false;
 
-    [HideInInspector] public PlayerStats playerStats; // référence pour stamina
+    [HideInInspector] public PlayerStats playerStats;
 
     void Start()
     {
@@ -54,83 +54,77 @@ public class PlayerMove : MonoBehaviour
 
     void Update()
     {
+        HandleMovement();
+        HandleCameraRotation();
+        HandleFootstepSounds();
+    }
+
+    // ------------------------
+    // MOUVEMENT
+    // ------------------------
+    void HandleMovement()
+    {
         float inputX = Input.GetAxis("Horizontal");
         float inputZ = Input.GetAxis("Vertical");
         bool isCrouching = Input.GetKey(KeyCode.LeftControl);
 
-        // 🔥 Détection de "je veux courir"
         IsTryingToRun = Input.GetKey(KeyCode.LeftShift);
+        if (forceStopRunning) IsTryingToRun = false;
 
-        // Empêché par la stamina ?
-        if (forceStopRunning)
-            IsTryingToRun = false;
+        IsRunning = IsTryingToRun && !forceStopRunning &&
+                    playerStats != null && playerStats.CurrentStamina > 0f;
 
-        // 🔥 Détermine si le joueur court réellement
-        IsRunning = IsTryingToRun && !forceStopRunning && playerStats != null && playerStats.CurrentStamina > 0f;
-
-        // Choix de la vitesse
         float currentSpeed =
             isCrouching ? crouchSpeed :
             (IsRunning ? runSpeed : walkSpeed);
 
         characterController.height = isCrouching ? crouchHeight : defaultHeight;
 
-        // Mouvement horizontal
-        Vector3 move = (transform.forward * inputZ + transform.right * inputX) * currentSpeed;
+        Vector3 move = transform.forward * inputZ + transform.right * inputX;
+        move *= currentSpeed;
 
-        // Gravité + saut
         if (characterController.isGrounded)
         {
-            moveDirection.y = 0f;
+            if (moveDirection.y < 0)
+                moveDirection.y = -2f;
 
-            if (Input.GetButton("Jump") && !isCrouching)
+            if (Input.GetButtonDown("Jump") && !isCrouching)
                 moveDirection.y = jumpPower;
-        }   
-
-        // Rotation caméra
-        if (canLook)
-        {
-            rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
-            rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-            playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
-
-            transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * lookSpeed);
         }
 
-
         moveDirection.y -= gravity * Time.deltaTime;
-
         moveDirection.x = move.x;
         moveDirection.z = move.z;
 
         characterController.Move(moveDirection * Time.deltaTime);
+    }
 
-        HandleFootstepSounds(currentSpeed);
+    // ------------------------
+    // ROTATION CAMERA
+    // ------------------------
+    void HandleCameraRotation()
+    {
+        if (!canLook) return;
 
-        // Rotation caméra
-        rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
+        float mouseX = Input.GetAxis("Mouse X") * lookSpeed;
+        float mouseY = Input.GetAxis("Mouse Y") * lookSpeed;
+
+        rotationX -= mouseY;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-        playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
 
-        transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * lookSpeed);
+        playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
+        transform.Rotate(Vector3.up * mouseX);
     }
 
-    public void ForceStopRunning()
+    // ------------------------
+    // FOOTSTEPS
+    // ------------------------
+    void HandleFootstepSounds()
     {
-        forceStopRunning = true;
-        StartCoroutine(ResetRunBlock());
-    }
+        bool isMoving = characterController.isGrounded &&
+                        (Mathf.Abs(moveDirection.x) > 0.1f || Mathf.Abs(moveDirection.z) > 0.1f);
 
-    private IEnumerator ResetRunBlock()
-    {
-        yield return new WaitForSeconds(0.1f);
-        forceStopRunning = false;
-    }
-
-    void HandleFootstepSounds(float speed)
-    {
-        bool isMoving = characterController.isGrounded && (moveDirection.x != 0 || moveDirection.z != 0);
-        float interval = speed > walkSpeed ? runStepInterval : walkStepInterval;
+        float interval = IsRunning ? runStepInterval : walkStepInterval;
 
         if (isMoving)
         {
@@ -149,5 +143,20 @@ public class PlayerMove : MonoBehaviour
         {
             stepTimer = interval;
         }
+    }
+
+    // ------------------------
+    // BLOQUE LE SPRINT
+    // ------------------------
+    public void ForceStopRunning()
+    {
+        forceStopRunning = true;
+        StartCoroutine(ResetRunBlock());
+    }
+
+    private IEnumerator ResetRunBlock()
+    {
+        yield return new WaitForSeconds(0.1f);
+        forceStopRunning = false;
     }
 }

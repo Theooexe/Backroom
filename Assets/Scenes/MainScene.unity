@@ -540,6 +540,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2114639111}
     - target: {fileID: 6371240411423072026, guid: 7d94d377fa7c7d74b83e331ba7861b18, type: 3}
+      propertyPath: 'audioSourcesToPause.Array.data[1]'
+      value: 
+      objectReference: {fileID: 1180752335}
+    - target: {fileID: 6371240411423072026, guid: 7d94d377fa7c7d74b83e331ba7861b18, type: 3}
       propertyPath: 'scriptsToDisableOnPause.Array.data[0]'
       value: 
       objectReference: {fileID: 1180752334}

@@ -1641,7 +1641,7 @@ PrefabInstance:
       objectReference: {fileID: 1129808471295694682}
     - target: {fileID: 5619972575179033896, guid: a1e91cb5d214d46cbafe97bb9bd95f0b, type: 3}
       propertyPath: audioSourcesToPause.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5619972575179033896, guid: a1e91cb5d214d46cbafe97bb9bd95f0b, type: 3}
       propertyPath: scriptsToDisableOnPause.Array.size

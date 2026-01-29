@@ -5,11 +5,11 @@ public class PauseMenu : MonoBehaviour
 {
     [Header("UI")]
     public GameObject pausePanel;
+    public GameObject parameterPanel;
     public GameObject HUD;
 
     [Header("Player Rotation")]
     public PlayerMove playerMove;
-
 
     [Header("Config")]
     public KeyCode pauseKey = KeyCode.Escape;
@@ -41,7 +41,9 @@ public class PauseMenu : MonoBehaviour
     {
         IsPaused = true;
         Time.timeScale = 0f;
-        if (pausePanel != null) pausePanel.SetActive(true);
+
+        pausePanel.SetActive(true);
+        if (parameterPanel != null) parameterPanel.SetActive(false);
         if (HUD != null) HUD.SetActive(false);
 
         Cursor.lockState = CursorLockMode.None;
@@ -53,15 +55,17 @@ public class PauseMenu : MonoBehaviour
         foreach (var a in audioSourcesToPause)
             if (a != null) a.Pause();
 
-        if(playerMove != null) 
-            playerMove.canLook = false; // bloque rotation tête
+        if (playerMove != null)
+            playerMove.canLook = false;
     }
 
     public void Resume()
     {
         IsPaused = false;
         Time.timeScale = 1f;
-        if (pausePanel != null) pausePanel.SetActive(false);
+
+        pausePanel.SetActive(false);
+        if (parameterPanel != null) parameterPanel.SetActive(false);
         if (HUD != null) HUD.SetActive(true);
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -73,10 +77,23 @@ public class PauseMenu : MonoBehaviour
         foreach (var a in audioSourcesToPause)
             if (a != null) a.UnPause();
 
-        if(playerMove != null) 
-            playerMove.canLook = true; // débloque rotation tête
+        if (playerMove != null)
+            playerMove.canLook = true;
     }
 
+    // ⚙️ OUVRIR PARAMÈTRES
+    public void OpenParameters()
+    {
+        pausePanel.SetActive(false);
+        parameterPanel.SetActive(true);
+    }
+
+    // 🔙 RETOUR AU MENU PAUSE
+    public void CloseParameters()
+    {
+        parameterPanel.SetActive(false);
+        pausePanel.SetActive(true);
+    }
 
     public void QuitToMainMenu()
     {

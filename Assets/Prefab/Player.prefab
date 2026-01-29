@@ -575,13 +575,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 2
+  m_Height: 1.8
   m_Radius: 0.5
-  m_SlopeLimit: 45
-  m_StepOffset: 0.7
+  m_SlopeLimit: 55
+  m_StepOffset: 0.4
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.91, z: 0}
+  m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!82 &9142963836976310108
 AudioSource:
   m_ObjectHideFlags: 0
@@ -769,7 +769,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6ba1a496d488428eb84555f1ee6dea1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPickup
-  pickupRange: 1
+  pickupRange: 2
   itemLayer:
     serializedVersion: 2
     m_Bits: 8
